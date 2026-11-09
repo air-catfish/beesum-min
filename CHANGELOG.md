@@ -4,6 +4,15 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-11-09
+
+### Changed
+
+- Updated `xunit.v3` to 4.0.3, `Microsoft.Extensions.*` and
+  `System.Security.Cryptography.ProtectedData` to 10.0.14.
+- Updated the Docker runtime image and GitHub Actions (checkout v7,
+  setup-dotnet v6, cache v6, upload-artifact v7, login-action v4, CodeQL v4).
+- Linux CI is pinned to `ubuntu-24.04`.
 ## [0.2.0] - 2026-11-09
 
 ### Added

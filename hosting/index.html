@@ -1120,10 +1120,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#codeberg-pages" class="md-nav__link">
+  <a href="#codeberg-mirror" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Codeberg Pages
+        Codeberg mirror
       
     </span>
   </a>
@@ -1456,10 +1456,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#codeberg-pages" class="md-nav__link">
+  <a href="#codeberg-mirror" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Codeberg Pages
+        Codeberg mirror
       
     </span>
   </a>
@@ -1504,27 +1504,24 @@
 <li>Codeberg mirror: https://codeberg.org/air-catfish/beesum-min</li>
 </ul>
 <h2 id="documentation-site">Documentation site<a class="headerlink" href="#documentation-site" title="Permanent link">&para;</a></h2>
-<p>This site is built with MkDocs Material and published from the <code>pages</code> branch on
-Codeberg Pages:</p>
-<div class="highlight"><pre><span></span><code>https://air-catfish.codeberg.page/beesum-min/
+<p>The site is a static MkDocs Material build published from the <code>gh-pages</code> branch:</p>
+<div class="highlight"><pre><span></span><code>https://air-catfish.github.io/beesum-min/
 </code></pre></div>
+<p>GitHub Pages is configured once with <strong>Settings → Pages → Deploy from a branch →
+<code>gh-pages</code> / root</strong>. The branch contains only generated HTML and assets; it does
+not add commits to <code>main</code>.</p>
 <p>Build locally:</p>
 <div class="highlight"><pre><span></span><code><span class="n">python</span> <span class="n">-m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">-r</span> <span class="n">requirements-docs</span><span class="p">.</span><span class="n">txt</span>
 <span class="n">python</span> <span class="n">-m</span> <span class="n">mkdocs</span> <span class="n">build</span> <span class="p">-</span><span class="n">-clean</span>
 </code></pre></div>
-<p>Publish the generated <code>artifacts/docs-site</code> directory to the <code>pages</code> branch.</p>
-<h2 id="codeberg-pages">Codeberg Pages<a class="headerlink" href="#codeberg-pages" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Repository must be public.</li>
-<li>Create a <code>pages</code> branch containing the built site.</li>
-<li>Settings → Webhooks → Add webhook → <strong>git-pages</strong>.</li>
-<li>Target: <code>https://air-catfish.codeberg.page/beesum-min/</code></li>
-<li>Branch filter: <code>pages</code>.</li>
-</ol>
+<p>Open <code>artifacts/docs-site/index.html</code>.</p>
+<h2 id="codeberg-mirror">Codeberg mirror<a class="headerlink" href="#codeberg-mirror" title="Permanent link">&para;</a></h2>
+<p>Codeberg Pages is optional. New Codeberg accounts must use the git-pages service;
+the legacy Pages v2 server is disabled for them. If the mirror is wanted later,
+push the generated site to a <code>pages</code> branch and add a <strong>git-pages</strong> webhook.</p>
 <h2 id="migration">Migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
-<p>The site is static. If Codeberg Pages ever goes away, copy the generated
-directory to any static host (Netlify, Cloudflare Pages, nginx) and change
-<code>site_url</code> in <code>mkdocs.yml</code>.</p>
+<p>The site is static. If GitHub Pages is unavailable, copy the generated directory
+to any static host and change <code>site_url</code> in <code>mkdocs.yml</code>.</p>
 
 
 

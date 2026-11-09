@@ -109,7 +109,10 @@ internal sealed class DpapiSecretStore : ISecretStore
     {
         var dir = Path.GetDirectoryName(_filePath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+            StoragePermissions.PrivateDirectory(dir);
+        }
 
         var json = JsonSerializer.Serialize(dict);
         var plain = Encoding.UTF8.GetBytes(json);

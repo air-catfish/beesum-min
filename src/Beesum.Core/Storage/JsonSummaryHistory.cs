@@ -50,6 +50,7 @@ internal sealed class JsonSummaryHistory : ISummaryHistory
 
             var line = JsonSerializer.Serialize(entry) + "\n";
             await File.AppendAllTextAsync(_filePath, line, cancellationToken).ConfigureAwait(false);
+            StoragePermissions.PrivateFile(_filePath);
         }
         finally
         {
@@ -75,6 +76,7 @@ internal sealed class JsonSummaryHistory : ISummaryHistory
                 foreach (var e in kept)
                     await writer.WriteLineAsync(JsonSerializer.Serialize(e)).ConfigureAwait(false);
             }
+            StoragePermissions.PrivateFile(tempPath);
             File.Move(tempPath, _filePath, overwrite: true);
         }
         finally

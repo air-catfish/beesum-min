@@ -43,6 +43,7 @@ internal sealed class FileTranscriptCache : ITranscriptCache
     {
         ArgumentNullException.ThrowIfNull(transcript);
         Directory.CreateDirectory(_directory);
+        StoragePermissions.PrivateDirectory(_directory);
 
         var path = GetPath(transcript.SourceId, transcript.Language);
         var tempPath = path + ".tmp";
@@ -52,6 +53,7 @@ internal sealed class FileTranscriptCache : ITranscriptCache
                 .SerializeAsync(stream, transcript, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
+        StoragePermissions.PrivateFile(tempPath);
         File.Move(tempPath, path, overwrite: true);
     }
 

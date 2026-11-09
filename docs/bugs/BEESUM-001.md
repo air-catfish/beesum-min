@@ -1,6 +1,6 @@
 # BEESUM-001 — crash when `%TEMP%` is not writable
 
-**Status:** fixed in v0.1.0
+**Status:** fixed in v0.2.0
 **Severity:** high (blocked the main GUI scenario)
 **Component:** `Beesum.Core.Pipeline.SummarizerPipeline`
 

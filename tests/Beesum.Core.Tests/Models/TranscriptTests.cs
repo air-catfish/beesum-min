@@ -32,4 +32,18 @@ public class TranscriptTests
         Assert.Equal("[00:00:05] Hello\n[00:01:02] World", text);
         Assert.DoesNotContain("00:15:00", text, StringComparison.Ordinal);
     }
+    [Fact]
+    public void Slice_ReturnsOverlappingCues()
+    {
+        var clipped = Sample().Slice(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(63));
+
+        Assert.Equal(new[] { "Hello", "World" }, clipped.Segments.Select(s => s.Text));
+    }
+
+    [Fact]
+    public void Slice_InvalidRange_Throws()
+    {
+        Assert.Throws<ArgumentException>(
+            () => Sample().Slice(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(5)));
+    }
 }

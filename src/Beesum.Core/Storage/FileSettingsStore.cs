@@ -109,7 +109,10 @@ internal sealed class FileSettingsStore : ISettingsStore
     {
         var dir = Path.GetDirectoryName(_filePath);
         if (!string.IsNullOrEmpty(dir))
+        {
             Directory.CreateDirectory(dir);
+            StoragePermissions.PrivateDirectory(dir);
+        }
 
         var tempPath = _filePath + ".tmp";
         await using (var stream = File.Create(tempPath))
@@ -118,6 +121,7 @@ internal sealed class FileSettingsStore : ISettingsStore
                 .SerializeAsync(stream, dict, cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
+        StoragePermissions.PrivateFile(tempPath);
         File.Move(tempPath, _filePath, overwrite: true);
     }
 }

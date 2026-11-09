@@ -37,6 +37,24 @@ public sealed record Transcript(
                 .Select(s => $"[{FormatTimestamp(s.Start)}] {s.Text}"));
     }
 
+    /// <summary>
+    /// Returns a transcript restricted to cues overlapping <paramref name="from"/>..<paramref name="to"/>.
+    /// Null bounds are open. Markers inside the range are kept.
+    /// </summary>
+    public Transcript Slice(TimeSpan? from, TimeSpan? to)
+    {
+        if (from is null && to is null) return this;
+        if (from is not null && to is not null && from.Value >= to.Value)
+            throw new ArgumentException("'from' must be before 'to'.", nameof(from));
+
+        var segments = Segments
+            .Where(s => (from is null || s.End > from.Value) &&
+                        (to is null || s.Start < to.Value))
+            .ToList();
+
+        return this with { Segments = segments };
+    }
+
     private static string FormatTimestamp(TimeSpan value)
     {
         var totalHours = (int)value.TotalHours;

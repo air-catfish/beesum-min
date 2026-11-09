@@ -4,10 +4,7 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The first public release has not been cut yet; everything below is in
-`Unreleased`.
-
-## [Unreleased]
+## [0.2.0] - 2026-11-09
 
 ### Added
 
@@ -21,6 +18,11 @@ The first public release has not been cut yet; everything below is in
 - API keys from environment variables only; keyless local OpenAI-compatible
   endpoints.
 - Retries for HTTP 429/5xx with `Retry-After`, two-minute request timeout.
+- `--from` / `--to` clip the transcript by time; `--save-vtt` and
+  `--save-transcript` keep the raw subtitles and the clipped text.
+- Interactive save prompts (once per file) with `--no-save-prompt` for scripts.
+- MCP rejects non-YouTube URLs; Docker runs non-root with pinned checksums; Unix
+  storage files are private.
 - `--timestamps` for `[hh:mm:ss]` transcript output and timestamp-aware prompts.
 - `--format mindmap` for a Mermaid mindmap, with a local Markdown-to-Mermaid formatter.
 - `beesum-mcp` stdio MCP server with `summarize_url` and `summarize_transcript`.

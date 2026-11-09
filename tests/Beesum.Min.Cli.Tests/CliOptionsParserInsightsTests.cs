@@ -48,4 +48,29 @@ public class CliOptionsParserInsightsTests
         Assert.Throws<ArgumentException>(
             () => CliOptionsParser.Parse(new[] { Url, "--from", "00:02:00", "--to", "00:01:00" }));
     }
+    [Fact]
+    public void Parse_DoctorSubcommand_SetsDoctor()
+    {
+        var options = CliOptionsParser.Parse(new[] { "doctor" });
+
+        Assert.True(options.Doctor);
+        Assert.False(options.CheckUpdates);
+    }
+
+    [Fact]
+    public void Parse_DoctorWithUpdates_SetsFlags()
+    {
+        var options = CliOptionsParser.Parse(new[] { "doctor", "--check-updates", "--json" });
+
+        Assert.True(options.Doctor);
+        Assert.True(options.CheckUpdates);
+        Assert.True(options.Json);
+    }
+
+    [Fact]
+    public void Parse_CheckUpdatesWithoutDoctor_Throws()
+    {
+        Assert.Throws<ArgumentException>(
+            () => CliOptionsParser.Parse(new[] { Url, "--check-updates" }));
+    }
 }

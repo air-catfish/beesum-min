@@ -31,8 +31,9 @@ dotnet run --project src\Beesum.Min.Cli -- --local-vtt samples\demo\talk.vtt
 ```
 
 The CLI covers `--json`, `--stdin`, `--batch`, `--prompt-file`, `--timestamps`,
-`--format mindmap`, `--from/--to`, `--save-vtt`, and `--save-transcript`; see
-`--help` and the docs below. MCP lives in `beesum-mcp`.
+`--format mindmap`, `--from/--to`, `--save-vtt`, and `--save-transcript`;
+`beesum-min doctor` checks the local setup. See `--help` and the docs below.
+MCP lives in `beesum-mcp`.
 
 ## Docs
 

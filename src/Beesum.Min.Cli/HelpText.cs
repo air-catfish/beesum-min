@@ -33,7 +33,7 @@ public static class HelpText
           --save-vtt <path>                        Save the full downloaded/local VTT
           --save-transcript <path>                 Save the clipped transcript or summary
           --no-save-prompt                         Do not ask where to save files
-          --cookies-from-browser <name>            Cookies from a browser profile
+
           --cookies-file <path>                    Netscape cookies.txt file
           --js-runtime <name[:path]>               JS runtime for YouTube challenges
           --yt-dlp-args "<args>"                   Extra args for every yt-dlp call
@@ -49,6 +49,10 @@ public static class HelpText
           --version                                Print version
           -h, --help                               Show this help
 
+        Doctor:
+          beesum-min doctor [--json] [--check-updates]
+          --check-updates                          Check the CLI and yt-dlp for newer versions
+          --cookies-from-browser <name>            Cookies from a browser profile
         Environment:
           BEESUM_LANG=en|ru                        UI language (default: system, English fallback)
           API keys are read from environment variables, never from arguments.
@@ -96,7 +100,7 @@ public static class HelpText
           --save-vtt <path>                        Сохранить полный VTT
           --save-transcript <path>                 Сохранить фрагмент транскрипта или конспект
           --no-save-prompt                         Не спрашивать, куда сохранять файлы
-          --cookies-from-browser <браузер>         Взять cookies из профиля браузера
+
           --cookies-file <путь>                    Использовать cookies.txt (Netscape)
           --js-runtime <имя[:путь]>                JS-рантайм для YouTube (например, deno)
           --yt-dlp-args "<аргументы>"              Доп. аргументы для всех вызовов yt-dlp
@@ -112,6 +116,10 @@ public static class HelpText
           --version                                Показать версию
           -h, --help                               Показать эту справку
 
+        Диагностика:
+          beesum-min doctor [--json] [--check-updates]
+          --check-updates                          Проверить новые версии CLI и yt-dlp
+          --cookies-from-browser <браузер>         Взять cookies из профиля браузера
         Окружение:
           BEESUM_LANG=en|ru                        Язык интерфейса (по умолчанию: системный)
           API-ключи читаются только из переменных окружения, не из аргументов.

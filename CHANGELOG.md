@@ -4,6 +4,15 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-11-09
+
+### Added
+
+- `beesum-min doctor` with yt-dlp, deno, temp, Ollama, provider-key checks and
+  `--json`.
+- Opt-in `doctor --check-updates` for the CLI and yt-dlp; it never downloads or
+  installs anything.
+- MkDocs documentation site with a future server/connectors section.
 ## [0.2.1] - 2026-11-09
 
 ### Changed

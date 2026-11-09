@@ -20,6 +20,19 @@ try
         return 0;
     }
 
+    if (options.Doctor)
+    {
+        var doctorServices = new ServiceCollection();
+        doctorServices.AddBeesum(beesum =>
+        {
+            beesum.YtDlpPath = options.YtDlpPath;
+            beesum.OllamaBaseUrl = options.OllamaBaseUrl;
+        });
+
+        await using var doctorProvider = doctorServices.BuildServiceProvider();
+        return await Doctor.RunAsync(options, doctorProvider, Console.Out, CancellationToken.None);
+    }
+
     var config = CliConfiguration.Resolve(options);
     options = CliSavePrompts.Apply(options);
 

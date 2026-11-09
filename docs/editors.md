@@ -63,7 +63,7 @@ No plugin is required; the built-in filter is enough:
 ```
 
 For a scratch buffer instead of replacing text, load
-[`contrib/vim/beesum.vim`](../contrib/vim/beesum.vim) (copy it to
+[`contrib/vim/beesum.vim`](https://codeberg.org/air-catfish/beesum-min/src/branch/main/contrib/vim/beesum.vim) (copy it to
 `~/.vim/plugin/`, or use a plugin manager) and:
 
 ```vim
@@ -83,7 +83,7 @@ vim.opt.runtimepath:append("/path/to/beesum-min/contrib/vim")
 
 ## Emacs
 
-Load [`contrib/emacs/beesum.el`](../contrib/emacs/beesum.el):
+Load [`contrib/emacs/beesum.el`](https://codeberg.org/air-catfish/beesum-min/src/branch/main/contrib/emacs/beesum.el):
 
 ```elisp
 (load-file "/path/to/beesum-min/contrib/emacs/beesum.el")

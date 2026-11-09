@@ -35,4 +35,6 @@ public sealed record CliOptions(
     TimeSpan? To = null,
     string? SaveVttPath = null,
     string? SaveTranscriptPath = null,
-    bool NoSavePrompt = false);
+    bool NoSavePrompt = false,
+    bool Doctor = false,
+    bool CheckUpdates = false);

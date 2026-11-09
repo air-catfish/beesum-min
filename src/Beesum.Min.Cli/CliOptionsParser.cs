@@ -11,6 +11,14 @@ public static class CliOptionsParser
         ArgumentNullException.ThrowIfNull(args);
 
         var url = string.Empty;
+        var doctor = false;
+        var checkUpdates = false;
+
+        if (args.Length > 0 && string.Equals(args[0], "doctor", StringComparison.OrdinalIgnoreCase))
+        {
+            doctor = true;
+            args = args[1..];
+        }
         var style = PromptStyle.Neutral;
         var format = OutputFormat.PlainText;
         var provider = "transcript-only";
@@ -159,6 +167,14 @@ public static class CliOptionsParser
                     noSavePrompt = true;
                     break;
 
+                case "--doctor":
+                    doctor = true;
+                    break;
+
+                case "--check-updates":
+                    checkUpdates = true;
+                    break;
+
                 case "--no-chunk":
                     noChunk = true;
                     break;
@@ -210,6 +226,9 @@ public static class CliOptionsParser
         if (jsonLines && batchFile is null)
             throw new ArgumentException("--jsonl requires --batch.");
 
+        if (checkUpdates && !doctor)
+            throw new ArgumentException("--check-updates requires doctor (or --doctor).");
+
         if (from is not null && to is not null && from.Value >= to.Value)
             throw new ArgumentException("--from must be before --to.");
 
@@ -239,7 +258,7 @@ public static class CliOptionsParser
         if (stdin && !string.IsNullOrWhiteSpace(localVtt))
             throw new ArgumentException("--stdin and --local-vtt are mutually exclusive.");
 
-        if (!showHelp && !showVersion && !stdin && batchFile is null && string.IsNullOrEmpty(url) && string.IsNullOrWhiteSpace(localVtt))
+        if (!showHelp && !showVersion && !doctor && !stdin && batchFile is null && string.IsNullOrEmpty(url) && string.IsNullOrWhiteSpace(localVtt))
             throw new ArgumentException("URL is required (or pass --local-vtt <path>, or --stdin).");
 
         return new CliOptions(
@@ -274,7 +293,9 @@ public static class CliOptionsParser
             to,
             saveVtt,
             saveTranscript,
-            noSavePrompt);
+            noSavePrompt,
+            doctor,
+            checkUpdates);
     }
 
     /// <summary>

@@ -51,14 +51,15 @@
       
     
     
+      <link rel="stylesheet" href="../assets/stylesheets/suprematism.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
-  <link rel="stylesheet" href="/beesum-min/assets/stylesheets/suprematism.css">
-</head>
+  </head>
   
   
     
@@ -1516,10 +1517,14 @@ not add commits to <code>main</code>.</p>
 <span class="n">python</span> <span class="n">-m</span> <span class="n">mkdocs</span> <span class="n">build</span> <span class="p">-</span><span class="n">-clean</span>
 </code></pre></div>
 <p>Open <code>artifacts/docs-site/index.html</code>.</p>
+<p>The Suprematist theme lives in <code>docs/assets/stylesheets/suprematism.css</code>. The
+repository also ships <code>assets/readme-banner.png</code> and <code>assets/social-preview.png</code>
+for GitHub/Codeberg presentation.</p>
 <h2 id="codeberg-mirror">Codeberg mirror<a class="headerlink" href="#codeberg-mirror" title="Permanent link">&para;</a></h2>
 <p>Codeberg Pages is optional. New Codeberg accounts must use the git-pages service;
-the legacy Pages v2 server is disabled for them. If the mirror is wanted later,
-push the generated site to a <code>pages</code> branch and add a <strong>git-pages</strong> webhook.</p>
+the legacy Pages v2 server is disabled for them. If the mirror site is wanted
+later, push the generated site to a <code>pages</code> branch and add a <strong>git-pages</strong>
+webhook.</p>
 <h2 id="migration">Migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
 <p>The site is static. If GitHub Pages is unavailable, copy the generated directory
 to any static host and change <code>site_url</code> in <code>mkdocs.yml</code>.</p>

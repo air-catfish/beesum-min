@@ -210,7 +210,7 @@ Cover at least: success, non-2xx response, malformed JSON, timeout, and
 ### 4. Verify manually
 
 ```powershell
-dotnet run --project src\Beesum.Min.Cli -- --local-vtt .\smoke.vtt --provider my-backend
+dotnet run --project src\Beesum.Min.Cli -- --local-vtt samples/demo/smoke.vtt --provider my-backend
 ```
 
 Because the provider list is resolved through DI, forgetting step 2 produces

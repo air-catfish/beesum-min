@@ -57,7 +57,7 @@ jobs:
         run: dotnet run --project tests/Beesum.Mcp.Tests -c Release --no-build
 
       - name: Offline quick-start sample
-        run: dotnet run --project samples/01-quick-start -c Release --no-build -- smoke.vtt
+        run: dotnet run --project samples/01-quick-start -c Release --no-build -- samples/demo/smoke.vtt
 
   pack:
     name: pack
@@ -82,7 +82,7 @@ jobs:
         run: |
           dotnet tool install --tool-path .tool beesum-min \
             --add-source artifacts/packages --version 0.2.2
-          .tool/beesum-min --local-vtt smoke.vtt --json
+          .tool/beesum-min --local-vtt samples/demo/smoke.vtt --json
           dotnet tool install --tool-path .tool-mcp beesum-mcp \
             --add-source artifacts/packages --version 0.2.2
           .tool-mcp/beesum-mcp --version

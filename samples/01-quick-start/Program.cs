@@ -3,7 +3,7 @@ using Beesum.Core.DependencyInjection;
 using Beesum.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-var vttPath = args.Length > 0 ? args[0] : "smoke.vtt";
+var vttPath = args.Length > 0 ? args[0] : "samples/demo/smoke.vtt";
 if (!File.Exists(vttPath))
 {
     Console.Error.WriteLine($"Subtitle file not found: {vttPath}");

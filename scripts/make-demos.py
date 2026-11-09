@@ -154,8 +154,8 @@ def main() -> None:
         ),
         (
             "json",
-            "beesum-min --local-vtt smoke.vtt --json",
-            ["beesum-min", "--local-vtt", "smoke.vtt", "--json"],
+            "beesum-min --local-vtt samples/demo/smoke.vtt --json",
+            ["beesum-min", "--local-vtt", "samples/demo/smoke.vtt", "--json"],
             None,
         ),
         (
@@ -172,9 +172,9 @@ def main() -> None:
         ),
         (
             "stdin",
-            "Get-Content smoke.vtt | beesum-min --stdin --input vtt --json",
+            "Get-Content samples/demo/smoke.vtt | beesum-min --stdin --input vtt --json",
             ["beesum-min", "--stdin", "--input", "vtt", "--json"],
-            (ROOT / "smoke.vtt").read_bytes(),
+            (ROOT / "samples/demo/smoke.vtt").read_bytes(),
         ),
     ]
 

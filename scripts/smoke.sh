@@ -18,19 +18,19 @@ echo "== mcp version =="
 dotnet run --project src/Beesum.Mcp -c Release --no-build -- --version
 
 echo "== sample =="
-dotnet run --project samples/01-quick-start -c Release --no-build -- smoke.vtt
+dotnet run --project samples/01-quick-start -c Release --no-build -- samples/demo/smoke.vtt
 
 echo "== cli: local vtt =="
-dotnet run --project src/Beesum.Min.Cli -c Release --no-build -- --local-vtt smoke.vtt
+dotnet run --project src/Beesum.Min.Cli -c Release --no-build -- --local-vtt samples/demo/smoke.vtt
 
 echo "== cli: json =="
-json="$(dotnet run --project src/Beesum.Min.Cli -c Release --no-build -- --local-vtt smoke.vtt --json)"
+json="$(dotnet run --project src/Beesum.Min.Cli -c Release --no-build -- --local-vtt samples/demo/smoke.vtt --json)"
 printf '%s\n' "$json"
 grep -q '"isSuccess": true' <<<"$json"
 grep -q '"providerId": "transcript-only"' <<<"$json"
 
 echo "== cli: stdin vtt =="
-json="$(cat smoke.vtt | dotnet run --project src/Beesum.Min.Cli -c Release --no-build -- --stdin --input vtt --json)"
+json="$(cat samples/demo/smoke.vtt | dotnet run --project src/Beesum.Min.Cli -c Release --no-build -- --stdin --input vtt --json)"
 printf '%s\n' "$json"
 grep -q '"isSuccess": true' <<<"$json"
 

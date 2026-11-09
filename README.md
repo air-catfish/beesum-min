@@ -20,6 +20,7 @@ dotnet tool install -g beesum-min
 dotnet tool install -g beesum-mcp
 dotnet add package Beesum.Core
 ```
+
 ## Source
 
 Build from source:

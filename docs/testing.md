@@ -4,7 +4,7 @@ No coverage badges, no “100% tested” claims. The suite is small and opiniona
 
 ## What exists
 
-- **251 tests**: Core 185, CLI 48, Testing 8, MCP 10.
+- **259 tests**: Core 190, CLI 50, Testing 8, MCP 11.
 - **Provider contract tests**: every `ILlmProvider` must return a stable id, a
   non-null availability, throw on a null request, and produce consistent metadata.
 - **Golden tests**: exact prompt strings for all style/format combinations and an

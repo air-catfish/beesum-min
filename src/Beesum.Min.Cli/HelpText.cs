@@ -28,6 +28,11 @@ public static class HelpText
           --proxy <url>                            Proxy for yt-dlp
           --sub-langs <list>                       Subtitle languages, e.g. en or ru,en (default: en)
           --timestamps                             Add [hh:mm:ss] cue times to the output and prompt
+          --from <time>                            Clip start: ss, mm:ss, or hh:mm:ss
+          --to <time>                              Clip end: ss, mm:ss, or hh:mm:ss
+          --save-vtt <path>                        Save the full downloaded/local VTT
+          --save-transcript <path>                 Save the clipped transcript or summary
+          --no-save-prompt                         Do not ask where to save files
           --cookies-from-browser <name>            Cookies from a browser profile
           --cookies-file <path>                    Netscape cookies.txt file
           --js-runtime <name[:path]>               JS runtime for YouTube challenges
@@ -86,6 +91,11 @@ public static class HelpText
           --proxy <url>                            Прокси для yt-dlp
           --sub-langs <list>                       Языки субтитров, например en или ru,en (по умолчанию: en)
           --timestamps                             Добавить [hh:mm:ss] к выводу и промпту
+          --from <time>                            Начало фрагмента: ss, mm:ss или hh:mm:ss
+          --to <time>                              Конец фрагмента: ss, mm:ss или hh:mm:ss
+          --save-vtt <path>                        Сохранить полный VTT
+          --save-transcript <path>                 Сохранить фрагмент транскрипта или конспект
+          --no-save-prompt                         Не спрашивать, куда сохранять файлы
           --cookies-from-browser <браузер>         Взять cookies из профиля браузера
           --cookies-file <путь>                    Использовать cookies.txt (Netscape)
           --js-runtime <имя[:путь]>                JS-рантайм для YouTube (например, deno)

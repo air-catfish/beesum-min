@@ -1,6 +1,9 @@
 namespace Beesum.Core.Abstractions;
 
-/// <summary>Store for secrets (API keys), backed by the OS keychain / DPAPI.</summary>
+/// <summary>
+/// Store for API keys. Windows uses DPAPI; Unix uses a user-only (0o600) file
+/// because libsecret/Keychain support is not implemented yet.
+/// </summary>
 public interface ISecretStore
 {
     /// <summary>Reads a secret, or <c>null</c> when absent.</summary>

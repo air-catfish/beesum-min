@@ -31,6 +31,16 @@ public class McpServerTests
     }
 
     [Fact]
+    public async Task SummarizeUrl_RejectsNonYouTubeUrls()
+    {
+        var response = Assert.Single(await RunAsync(
+            """{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"summarize_url","arguments":{"url":"file:///etc/passwd"}}}"""));
+
+        var result = response.RootElement.GetProperty("result");
+        Assert.True(result.GetProperty("isError").GetBoolean());
+        Assert.Contains("YouTube", result.GetProperty("content")[0].GetProperty("text").GetString(), StringComparison.Ordinal);
+    }
+    [Fact]
     public async Task Initialize_ReturnsProtocolAndToolsCapability()
     {
         var response = Assert.Single(await RunAsync(

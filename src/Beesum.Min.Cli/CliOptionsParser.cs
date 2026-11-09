@@ -37,6 +37,11 @@ public static class CliOptionsParser
         var chunkTokens = 6000;
         IReadOnlyList<string>? subtitleLanguages = null;
         var timestamps = false;
+        TimeSpan? from = null;
+        TimeSpan? to = null;
+        string? saveVtt = null;
+        string? saveTranscript = null;
+        var noSavePrompt = false;
         var ytDlpArgs = new List<string>();
 
         for (var i = 0; i < args.Length; i++)
@@ -134,6 +139,26 @@ public static class CliOptionsParser
                     timestamps = true;
                     break;
 
+                case "--from":
+                    from = ParseTimestamp(RequireValue(args, ref i), "--from");
+                    break;
+
+                case "--to":
+                    to = ParseTimestamp(RequireValue(args, ref i), "--to");
+                    break;
+
+                case "--save-vtt":
+                    saveVtt = RequireValue(args, ref i);
+                    break;
+
+                case "--save-transcript":
+                    saveTranscript = RequireValue(args, ref i);
+                    break;
+
+                case "--no-save-prompt":
+                    noSavePrompt = true;
+                    break;
+
                 case "--no-chunk":
                     noChunk = true;
                     break;
@@ -185,6 +210,18 @@ public static class CliOptionsParser
         if (jsonLines && batchFile is null)
             throw new ArgumentException("--jsonl requires --batch.");
 
+        if (from is not null && to is not null && from.Value >= to.Value)
+            throw new ArgumentException("--from must be before --to.");
+
+        if (saveVtt is not null && (batchFile is not null || stdin))
+            throw new ArgumentException("--save-vtt works with a URL or --local-vtt, not --batch/--stdin.");
+
+        if (saveTranscript is not null && batchFile is not null)
+            throw new ArgumentException("--save-transcript cannot be combined with --batch; use -o for batch output.");
+
+        if (from is not null && stdin)
+            throw new ArgumentException("--from/--to cannot be used with --stdin, which has no cue times.");
+
         if (batchFile is not null)
         {
             if (!string.IsNullOrWhiteSpace(localVtt))
@@ -232,7 +269,12 @@ public static class CliOptionsParser
             noChunk,
             chunkTokens,
             subtitleLanguages,
-            timestamps);
+            timestamps,
+            from,
+            to,
+            saveVtt,
+            saveTranscript,
+            noSavePrompt);
     }
 
     /// <summary>
@@ -299,6 +341,26 @@ public static class CliOptionsParser
         "vtt" => "vtt",
         _ => throw new ArgumentException($"Unknown --input '{value}'. Use text|vtt."),
     };
+
+    private static TimeSpan ParseTimestamp(string value, string option)
+    {
+        var parts = value.Split(':');
+        if (parts.Length is < 1 or > 3 ||
+            !parts.All(part => int.TryParse(part, NumberStyles.None, CultureInfo.InvariantCulture, out _)))
+        {
+            throw new ArgumentException($"{option} expects seconds, mm:ss, or hh:mm:ss.");
+        }
+
+        var numbers = parts.Select(part => int.Parse(part, CultureInfo.InvariantCulture)).ToArray();
+        var hours = numbers.Length == 3 ? numbers[0] : 0;
+        var minutes = numbers.Length >= 2 ? numbers[^2] : 0;
+        var seconds = numbers[^1];
+
+        if (minutes >= 60 || seconds >= 60)
+            throw new ArgumentException($"{option} expects minutes and seconds below 60.");
+
+        return new TimeSpan(hours, minutes, seconds);
+    }
 
     private static IReadOnlyList<string> ParseLanguages(string value)
     {

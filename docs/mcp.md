@@ -6,14 +6,9 @@ or a transcript it already has.
 
 ## Install and configure
 
-`beesum-mcp` is not on NuGet yet. From a source checkout:
-
 ```powershell
-dotnet pack src\Beesum.Mcp\Beesum.Mcp.csproj -c Release -o artifacts\packages
-dotnet tool install --tool-path .tools beesum-mcp --add-source artifacts\packages --version 0.1.0
+dotnet tool install -g beesum-mcp
 ```
-
-Use `.tools/beesum-mcp` as the command until the package is published.
 
 Claude Desktop / Cursor / any MCP client:
 

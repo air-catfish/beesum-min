@@ -18,11 +18,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: 10.0.x
 
@@ -40,38 +41,37 @@ jobs:
           dotnet run --project tests/Beesum.Mcp.Tests -c Release --no-build
 
       - name: Pack
-        run: |
-          dotnet pack src/Beesum.Core/Beesum.Core.csproj -c Release -o artifacts/packages
-          dotnet pack src/Beesum.Testing/Beesum.Testing.csproj -c Release -o artifacts/packages
-          dotnet pack src/Beesum.Min.Cli/Beesum.Min.Cli.csproj -c Release -o artifacts/packages
-          dotnet pack src/Beesum.Mcp/Beesum.Mcp.csproj -c Release -o artifacts/packages
+        run: bash scripts/pack.sh
 
-      - name: Push to NuGet
+      - name: Push to GitHub Packages
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -z "$NUGET_API_KEY" ]; then
-            echo "::error::NUGET_API_KEY secret is not configured"
-            exit 1
-          fi
           for package in artifacts/packages/*.nupkg; do
             dotnet nuget push "$package" \
-              --api-key "$NUGET_API_KEY" \
-              --source https://api.nuget.org/v3/index.json \
+              --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+              --api-key "$GITHUB_TOKEN" \
+              --no-symbols \
               --skip-duplicate
           done
 
+
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         run: |
           image="ghcr.io/${{ github.repository }}"
           docker build -t "$image:${GITHUB_REF_NAME}" -t "$image:latest" .
+
+      - name: Push Docker image
+        continue-on-error: true
+        run: |
+          image="ghcr.io/${{ github.repository }}"
           docker push "$image:${GITHUB_REF_NAME}"
           docker push "$image:latest"
 
@@ -79,6 +79,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" artifacts/packages/*.nupkg \
+          gh release create "$GITHUB_REF_NAME" artifacts/packages/*.nupkg artifacts/packages/*.snupkg artifacts/packages/SHA256SUMS \
             --title "$GITHUB_REF_NAME" \
             --notes-file "docs/release-notes/${GITHUB_REF_NAME}.md"

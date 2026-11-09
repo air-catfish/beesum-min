@@ -9,14 +9,10 @@ change between minor releases.
 
 ## 1. Install
 
-`Beesum.Core` is not on NuGet yet. Build it from this repository and reference the
-project, or pack it locally:
-
 ```powershell
-dotnet pack src\Beesum.Core\Beesum.Core.csproj -c Release -o artifacts\packages
+dotnet add package Beesum.Core
+dotnet add package Beesum.Testing   # in test projects
 ```
-
-For tests, reference `src/Beesum.Testing` the same way.
 
 ## 2. Register the services
 

@@ -2,12 +2,12 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.air-catfish/beesum-min",
   "description": "Transcript-first YouTube summarizer: download subtitles, keep the transcript local, or summarize through a configured provider.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "packages": [
     {
       "registryType": "nuget",
       "identifier": "beesum-mcp",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "transport": {
         "type": "stdio"
       },

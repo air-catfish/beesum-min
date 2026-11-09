@@ -4,6 +4,18 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-11-09
+
+### Added
+
+- MCP `get_transcript`: timestamped transcript text with pagination, no nested LLM call.
+- MCP tool annotations and `.mcp/server.json` metadata.
+
+### Changed
+
+- yt-dlp URLs are passed after `--`; non-http(s) URLs are rejected.
+- Built-in prompts mark the transcript as untrusted data.
+- Smoke fixture moved to `samples/demo/smoke.vtt`; README cleanup.
 ## [0.2.2] - 2026-11-09
 
 ### Added

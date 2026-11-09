@@ -45,7 +45,7 @@ One-time setup:
      not your email.
    - Optional: required reviewers as a publish gate.
 3. Push a `v*` tag, or run **Actions → NuGet → Run workflow** with an existing tag
-   (for example `v0.2.2`).
+   (for example `v0.2.3`).
 
 The policy is permanent for a public repository after the first successful
 publish; private repositories have a seven-day temporary window.
@@ -65,15 +65,15 @@ Then install with `--add-source github`, or put it in `nuget.config`.
 
 ## Release checklist
 
-1. Set the version in `Directory.Build.props` (currently `0.2.2`).
+1. Set the version in `Directory.Build.props` (currently `0.2.3`).
 2. Create the trusted publishing policy and the `release` environment secret
    `NUGET_USER` (once).
 3. Create a signed tag and push it:
 
    ```bash
-   git tag -s v0.2.2 -m "beesum-min 0.2.1"
-   git verify-tag v0.2.2
-   git push origin v0.2.2
+   git tag -s v0.2.3 -m "beesum-min 0.2.1"
+   git verify-tag v0.2.3
+   git push origin v0.2.3
    ```
 
    If you do not have a signing key, create an unsigned tag and enable immutable

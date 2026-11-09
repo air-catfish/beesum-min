@@ -4,7 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Testing">
-    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup Label="HTTP">

@@ -8,38 +8,63 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Downloads YouTube subtitles with yt-dlp, parses WebVTT, and prints a clean
-transcript or a summary. `transcript-only` (default) never sends the transcript
-anywhere; Ollama stays local; API providers are opt-in.
+transcript or a summary. `transcript-only` is the default: it never sends the
+transcript anywhere. Ollama stays local; cloud providers are opt-in.
 
 <img src="docs/demos/real-video.gif" width="720" alt="beesum-min on a 3blue1brown video">
 
 ## Install
 
-```powershell
+```bash
 dotnet tool install -g beesum-min
-dotnet tool install -g beesum-mcp
-dotnet add package Beesum.Core
+```
+
+## Run
+
+Local sample, no network:
+
+```bash
+beesum-min --local-vtt samples/demo/smoke.vtt --timestamps
+```
+
+```text
+[00:00:00] Hello world
+[00:00:02] This is a smoke test.
+```
+
+A real video:
+
+```bash
+beesum-min "https://www.youtube.com/watch?v=..." --json
+```
+
+`--from/--to`, `--save-vtt`, `--save-transcript`, `--prompt-file`,
+`--instructions`, `--sub-langs`, `--timestamps`, `--format mindmap`,
+`--stdin`, `--batch`, `--proxy` — see `--help`.
+
+Check the local setup:
+
+```bash
+beesum-min doctor
 ```
 
 ## Source
 
-Build from source:
-
-```powershell
+```bash
 dotnet build beesum-min.slnx -c Release
-dotnet run --project src\Beesum.Min.Cli -- --local-vtt samples\demo\talk.vtt
+dotnet run --project src/Beesum.Min.Cli -- --local-vtt samples/demo/talk.vtt
 ```
-
-The CLI covers `--json`, `--stdin`, `--batch`, `--prompt-file`, `--timestamps`,
-`--format mindmap`, `--from/--to`, `--save-vtt`, and `--save-transcript`;
-`beesum-min doctor` checks the local setup. See `--help` and the docs below.
-MCP lives in `beesum-mcp`.
 
 ## Docs
 
-- [Embedding](docs/embedding.md) · [Prompts](docs/prompts.md) · [Editors](docs/editors.md)
-- [MCP](docs/mcp.md) · [Packaging](docs/packaging.md) · [Testing](docs/testing.md)
-- [Languages](docs/languages.md) · [Chunking](docs/chunking.md) · [For agents](docs/for-agents.md)
+- [Docs site](https://air-catfish.codeberg.page/beesum-min/) (after the `pages` branch is published)
+- [Install](docs/install.md) · [CLI](docs/cli.md) · [Library](docs/embedding.md)
+- [MCP](docs/mcp.md) · [Editors](docs/editors.md) · [Testing](docs/testing.md)
+
+## Disclaimer
+
+The tool uses `yt-dlp` to download subtitles. You are responsible for complying
+with YouTube's terms and with the rights of the content you process.
 
 ## License
 

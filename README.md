@@ -13,34 +13,23 @@ anywhere; Ollama stays local; API providers are opt-in.
 
 <img src="docs/demos/real-video.gif" width="720" alt="beesum-min on a 3blue1brown video">
 
-## Status
+## Source
 
-No NuGet packages yet. The source builds and is tested; packages are prepared with
-`dotnet pack` and will be published with the first release.
-
-## Build and test
+Build from source:
 
 ```powershell
 dotnet build beesum-min.slnx -c Release
-dotnet run --project tests\Beesum.Core.Tests
-dotnet run --project tests\Beesum.Min.Cli.Tests
-dotnet run --project tests\Beesum.Testing.Tests
-dotnet run --project tests\Beesum.Mcp.Tests
-```
-
-## Use
-
-```powershell
 dotnet run --project src\Beesum.Min.Cli -- --local-vtt samples\demo\talk.vtt
-dotnet run --project src\Beesum.Min.Cli -- "https://www.youtube.com/watch?v=..." --json
 ```
 
-`--prompt-file`, `--instructions`, `--sub-langs`, `--timestamps`, `--format mindmap`,
-`--chunk-tokens`, `--stdin`, `--batch`, `--proxy` — see `--help`.
+The CLI covers `--json`, `--stdin`, `--batch`, `--prompt-file`, `--timestamps`,
+`--format mindmap`, `--from/--to`, `--save-vtt`, and `--save-transcript`; see
+`--help` and the docs below. MCP lives in `beesum-mcp`.
 
 ## Docs
 
-- [Embedding](docs/embedding.md) · [Prompts](docs/prompts.md) · [MCP](docs/mcp.md)
+- [Embedding](docs/embedding.md) · [Prompts](docs/prompts.md) · [Editors](docs/editors.md)
+- [MCP](docs/mcp.md) · [Packaging](docs/packaging.md) · [Testing](docs/testing.md)
 - [Languages](docs/languages.md) · [Chunking](docs/chunking.md) · [For agents](docs/for-agents.md)
 
 ## License

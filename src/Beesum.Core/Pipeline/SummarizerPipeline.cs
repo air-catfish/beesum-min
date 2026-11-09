@@ -81,11 +81,39 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 $"LLM provider '{_providerId}' is not registered.");
         }
 
+        if (command.From is not null && command.To is not null && command.From.Value >= command.To.Value)
+        {
+            return new SummaryResult(
+                false,
+                string.Empty,
+                provider.Id,
+                "'from' must be before 'to'.");
+        }
+
         if (command.Transcript is not null)
         {
+            var clipped = command.Transcript.Slice(command.From, command.To);
+            if ((command.From is not null || command.To is not null) && clipped.Segments.Count == 0)
+            {
+                return new SummaryResult(
+                    false,
+                    string.Empty,
+                    provider.Id,
+                    "No cues in the selected time range.");
+            }
+
+            var transcriptSaveError = TrySaveTranscript(
+                clipped,
+                command.SaveTranscriptPath,
+                command.Timestamps);
+            if (transcriptSaveError is not null)
+            {
+                return new SummaryResult(false, string.Empty, provider.Id, transcriptSaveError);
+            }
+
             return await SummarizeAsync(
                 provider,
-                command.Transcript,
+                clipped,
                 command,
                 progress,
                 cancellationToken).ConfigureAwait(false);
@@ -164,14 +192,42 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 sourceId = DeriveSourceId(vttPath);
             }
 
+            if (!string.IsNullOrWhiteSpace(command.SaveVttPath))
+            {
+                var saveError = TrySaveVtt(vttPath, command.SaveVttPath);
+                if (saveError is not null)
+                {
+                    return new SummaryResult(false, string.Empty, provider.Id, saveError);
+                }
+            }
+
             progress?.Report(PipelineStage.Parsing);
             var transcript = await _parser
                 .ParseFileAsync(vttPath, sourceId, language, cancellationToken)
                 .ConfigureAwait(false);
 
+            var clipped = transcript.Slice(command.From, command.To);
+            if ((command.From is not null || command.To is not null) && clipped.Segments.Count == 0)
+            {
+                return new SummaryResult(
+                    false,
+                    string.Empty,
+                    provider.Id,
+                    "No cues in the selected time range.");
+            }
+
+            var transcriptSaveError = TrySaveTranscript(
+                clipped,
+                command.SaveTranscriptPath,
+                command.Timestamps);
+            if (transcriptSaveError is not null)
+            {
+                return new SummaryResult(false, string.Empty, provider.Id, transcriptSaveError);
+            }
+
             return await SummarizeAsync(
                 provider,
-                transcript,
+                clipped,
                 command,
                 progress,
                 cancellationToken).ConfigureAwait(false);
@@ -473,6 +529,51 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
         return result;
     }
 
+    private static string? TrySaveTranscript(Transcript transcript, string? targetPath, bool timestamps)
+    {
+        if (string.IsNullOrWhiteSpace(targetPath)) return null;
+        if (transcript.Segments.Count == 0 || string.IsNullOrWhiteSpace(transcript.ToPlainText())) return null;
+
+        try
+        {
+            var target = Path.GetFullPath(targetPath);
+            var directory = Path.GetDirectoryName(target);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            File.WriteAllText(target, transcript.ToPlainText(timestamps));
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return $"Could not save transcript to '{targetPath}': {ex.Message}";
+        }
+    }
+
+    private static string? TrySaveVtt(string sourcePath, string targetPath)
+    {
+        try
+        {
+            var source = Path.GetFullPath(sourcePath);
+            var target = Path.GetFullPath(targetPath);
+            var comparison = OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            if (string.Equals(source, target, comparison)) return null;
+
+            var directory = Path.GetDirectoryName(target);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            File.Copy(source, target, overwrite: true);
+            return null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        {
+            return $"Could not save subtitles to '{targetPath}': {ex.Message}";
+        }
+    }
     private static string DeriveSourceId(string vttPath)
     {
         var name = Path.GetFileNameWithoutExtension(vttPath);

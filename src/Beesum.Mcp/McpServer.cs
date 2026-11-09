@@ -347,6 +347,13 @@ internal sealed class McpServer
         if (string.IsNullOrWhiteSpace(url))
             return new ToolOutcome("Missing required argument: url.", IsError: true);
 
+        if (!IsYouTubeUrl(url))
+        {
+            return new ToolOutcome(
+                "summarize_url only accepts YouTube URLs (youtube.com, youtu.be, music.youtube.com).",
+                IsError: true);
+        }
+
         var command = new SummarizeCommand(
             url,
             GetStyle(arguments),
@@ -429,6 +436,16 @@ internal sealed class McpServer
         value.TryGetProperty(property, out var propertyValue) &&
         propertyValue.ValueKind is JsonValueKind.True or JsonValueKind.False &&
         propertyValue.GetBoolean();
+
+    private static bool IsYouTubeUrl(string value)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) return false;
+        if (uri.Scheme is not ("http" or "https")) return false;
+
+        return uri.Host.TrimEnd('.').ToLowerInvariant() is
+            "youtube.com" or "www.youtube.com" or "m.youtube.com" or "music.youtube.com" or
+            "youtu.be" or "youtube-nocookie.com" or "www.youtube-nocookie.com";
+    }
 
     private static string? GetString(JsonElement element, string property) =>
         element.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String

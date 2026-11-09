@@ -1,0 +1,31 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:06.000
+Today I want to talk about caching in a small API, and why most cache bugs are not cache bugs at all.
+
+00:00:06.000 --> 00:00:12.000
+Our first version cached every response for sixty seconds. It was simple, and it broke the moment two users asked for the same object with different permissions.
+
+00:00:12.000 --> 00:00:18.000
+The fix was not a bigger cache. It was making the cache key include the tenant and the permission scope, not just the object id.
+
+00:00:18.000 --> 00:00:24.000
+The second mistake was invalidation. We invalidated on write, but forgot that a write can fail after the database commit.
+
+00:00:24.000 --> 00:00:30.000
+Now we write an outbox row in the same transaction, and a worker evicts the cache afterwards. The cache can be stale for a few hundred milliseconds, and that is fine.
+
+00:00:30.000 --> 00:00:36.000
+The third mistake was measuring the wrong thing. We watched the hit rate, felt good, and missed that the p99 latency got worse because misses were expensive.
+
+00:00:36.000 --> 00:00:42.000
+We now track hit rate and miss cost separately. A ninety percent hit rate with a two second miss is worse than seventy percent with a fifty millisecond miss.
+
+00:00:42.000 --> 00:00:48.000
+One more thing: never cache errors. A five hundred response cached for a minute turns one bad request into a minute of bad requests.
+
+00:00:48.000 --> 00:00:54.000
+If you take one thing away, make it this: a cache is a copy of a decision, and the decision includes who is allowed to see the data.
+
+00:00:54.000 --> 00:00:58.000
+Thanks. The slides and the outbox example are in the repository.

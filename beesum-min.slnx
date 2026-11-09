@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Beesum.Core/Beesum.Core.csproj" />
+    <Project Path="src/Beesum.Mcp/Beesum.Mcp.csproj" />
+    <Project Path="src/Beesum.Min.Cli/Beesum.Min.Cli.csproj" />
+    <Project Path="src/Beesum.Testing/Beesum.Testing.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Beesum.Core.Tests/Beesum.Core.Tests.csproj" />
+    <Project Path="tests/Beesum.Mcp.Tests/Beesum.Mcp.Tests.csproj" />
+    <Project Path="tests/Beesum.Min.Cli.Tests/Beesum.Min.Cli.Tests.csproj" />
+    <Project Path="tests/Beesum.Testing.Tests/Beesum.Testing.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/01-quick-start/01-quick-start.csproj" />
+  </Folder>
+</Solution>

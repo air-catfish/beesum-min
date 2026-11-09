@@ -1,0 +1,18 @@
+# .gitattributes
+* text=auto eol=lf
+
+# Windows-скрипты должны остаться CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Бинарники — не трогать
+*.png binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.woff2 binary
+*.ttf binary
+*.dll binary
+*.exe binary

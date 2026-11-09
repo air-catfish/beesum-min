@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Beesum.Core</PackageId>
+    <Title>Beesum.Core</Title>
+    <Description>Transcript-first YouTube summarizer core: WebVTT parsing, yt-dlp integration, pluggable LLM providers, and a DI-friendly pipeline.</Description>
+    <PackageTags>youtube;subtitles;transcript;summarizer;yt-dlp;webvtt;ollama;llm</PackageTags>
+    <PackageIcon>beesum-min-128.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Beesum.Core.Tests" />
+    <InternalsVisibleTo Include="Beesum.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../assets/icon/beesum-min-128.png" Pack="true" PackagePath="\" />
+    <None Include="../../docs/package-readme.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+</Project>

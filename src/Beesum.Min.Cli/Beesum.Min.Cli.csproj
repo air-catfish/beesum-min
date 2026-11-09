@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>beesum-min</AssemblyName>
+    <ApplicationIcon>Assets/beesum-min.ico</ApplicationIcon>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>beesum-min</ToolCommandName>
+    <PackageId>beesum-min</PackageId>
+    <Title>beesum-min</Title>
+    <Description>Transcript-first YouTube summarizer CLI. Keeps the transcript on your machine; summarizes with a local LLM when asked.</Description>
+    <PackageTags>youtube;subtitles;transcript;summarizer;yt-dlp;webvtt;ollama;llm;cli</PackageTags>
+    <PackageIcon>beesum-min-128.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Beesum.Core/Beesum.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Beesum.Min.Cli.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../assets/icon/beesum-min-128.png" Pack="true" PackagePath="\" />
+    <None Include="../../README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+</Project>

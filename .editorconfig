@@ -1,0 +1,63 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,axaml,xml,json,yml,yaml}]
+indent_size = 2
+[*.cs]
+# Стиль
+csharp_new_line_before_open_brace = all
+csharp_prefer_braces = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
+
+# using
+dotnet_sort_system_directives_first = true
+dotnet_remove_unnecessary_usings = true
+
+# Naming
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_start_with_i.symbols = interface_symbols
+dotnet_naming_rule.interfaces_start_with_i.style = i_prefix
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_style.i_prefix.required_prefix = I
+dotnet_naming_style.i_prefix.capitalization = pascal_case
+
+# private const → PascalCase (MinCueDurationMs)
+dotnet_naming_rule.private_constants_pascal_case.severity = warning
+dotnet_naming_rule.private_constants_pascal_case.symbols = private_constants
+dotnet_naming_rule.private_constants_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.private_constants.applicable_kinds = field
+dotnet_naming_symbols.private_constants.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants.required_modifiers = const
+
+# private static readonly → PascalCase (MarkerInterval)
+dotnet_naming_rule.private_static_readonly_pascal_case.severity = warning
+dotnet_naming_rule.private_static_readonly_pascal_case.symbols = private_static_readonly
+dotnet_naming_rule.private_static_readonly_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.private_static_readonly.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_readonly.required_modifiers = static, readonly
+
+dotnet_naming_style.pascal_case_style.required_prefix =
+dotnet_naming_style.pascal_case_style.required_suffix =
+dotnet_naming_style.pascal_case_style.word_separator =
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+[*.{axaml,xml}]
+# Avalonia XAML
+indent_size = 2
+
+# Tests: xUnit v3 wants TestContext.Current.CancellationToken everywhere. The suite is
+# fast and deliberately uses CancellationToken.None, so the guidance is noise here.
+[tests/**/*.cs]
+dotnet_diagnostic.xUnit1051.severity = none

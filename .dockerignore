@@ -1,0 +1,11 @@
+**/bin
+**/obj
+.git
+.github
+.vs
+artifacts
+tests
+docs
+samples
+*.md
+!README.md

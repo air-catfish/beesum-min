@@ -508,6 +508,102 @@ public class SummarizerPipelineTests
         Assert.Contains("```mermaid", result.Content, StringComparison.Ordinal);
         Assert.Contains("root((Caching))", result.Content, StringComparison.Ordinal);
     }
+    [Fact]
+    public async Task RunAsync_SaveVtt_CopiesTheDownloadedFile()
+    {
+        var tempVtt = WriteTempVtt();
+        var target = Path.Combine(Path.GetTempPath(), "beesum-saved-" + Guid.NewGuid().ToString("N") + ".vtt");
+        try
+        {
+            var pipeline = new SummarizerPipeline(
+                new InMemoryYtDlpService(),
+                Parser(),
+                new[] { new InMemoryLlmProvider() });
+
+            var command = new SummarizeCommand(
+                Url,
+                PromptStyle.Neutral,
+                OutputFormat.PlainText,
+                LocalVttPath: tempVtt,
+                SaveVttPath: target);
+
+            var result = await pipeline.RunAsync(command, cancellationToken: CancellationToken.None);
+
+            Assert.True(result.IsSuccess);
+            Assert.True(File.Exists(target));
+            Assert.Equal(await File.ReadAllTextAsync(tempVtt), await File.ReadAllTextAsync(target));
+        }
+        finally
+        {
+            File.Delete(target);
+            Directory.Delete(Path.GetDirectoryName(tempVtt)!, true);
+        }
+    }
+
+    [Fact]
+    public async Task RunAsync_FromTo_FiltersCues()
+    {
+        var provider = new InMemoryLlmProvider("transcript-only");
+        var pipeline = new SummarizerPipeline(
+            new InMemoryYtDlpService(),
+            Parser(),
+            new[] { provider });
+
+        var command = new SummarizeCommand(
+            Url: string.Empty,
+            PromptStyle.Neutral,
+            OutputFormat.PlainText,
+            Transcript: new Transcript("abc", "en", new[]
+            {
+                new SubtitleSegment(TimeSpan.Zero, TimeSpan.FromSeconds(10), "first"),
+                new SubtitleSegment(TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30), "second"),
+            }),
+            From: TimeSpan.FromSeconds(15),
+            To: TimeSpan.FromSeconds(25));
+
+        var result = await pipeline.RunAsync(command, cancellationToken: CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var request = Assert.Single(provider.Requests);
+        Assert.Equal("second", request.Transcript.ToPlainText());
+    }
+    [Fact]
+    public async Task RunAsync_SaveTranscript_WritesTheRawClippedText()
+    {
+        var target = Path.Combine(Path.GetTempPath(), "beesum-transcript-" + Guid.NewGuid().ToString("N") + ".md");
+        try
+        {
+            var provider = new InMemoryLlmProvider
+            {
+                Result = new SummaryResult(true, "summary", "in-memory"),
+            };
+            var pipeline = new SummarizerPipeline(
+                new InMemoryYtDlpService(),
+                Parser(),
+                new[] { provider });
+
+            var command = new SummarizeCommand(
+                Url: string.Empty,
+                PromptStyle.Neutral,
+                OutputFormat.PlainText,
+                Transcript: new Transcript("abc", "en", new[]
+                {
+                    new SubtitleSegment(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(7), "Hi"),
+                }),
+                Timestamps: true,
+                SaveTranscriptPath: target);
+
+            var result = await pipeline.RunAsync(command, cancellationToken: CancellationToken.None);
+
+            Assert.True(result.IsSuccess);
+            Assert.Equal("summary", result.Content);
+            Assert.Equal("[00:00:05] Hi", await File.ReadAllTextAsync(target));
+        }
+        finally
+        {
+            File.Delete(target);
+        }
+    }
     private static Transcript LongTranscript() =>
         new("abc", "en", Enumerable.Range(0, 12)
             .Select(i => new SubtitleSegment(

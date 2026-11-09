@@ -30,4 +30,9 @@ public sealed record CliOptions(
     bool NoChunk = false,
     int ChunkTokens = 6000,
     IReadOnlyList<string>? SubtitleLanguages = null,
-    bool Timestamps = false);
+    bool Timestamps = false,
+    TimeSpan? From = null,
+    TimeSpan? To = null,
+    string? SaveVttPath = null,
+    string? SaveTranscriptPath = null,
+    bool NoSavePrompt = false);

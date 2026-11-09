@@ -10,7 +10,7 @@ or a transcript it already has.
 
 ```powershell
 dotnet pack src\Beesum.Mcp\Beesum.Mcp.csproj -c Release -o artifacts\packages
-dotnet tool install --tool-path .tools beesum-mcp --add-source artifacts\packages --version 0.1.0
+dotnet tool install --tool-path .tools beesum-mcp --add-source artifacts\packages --version 0.2.0
 ```
 
 Use `.tools/beesum-mcp` as the command until the package is published.

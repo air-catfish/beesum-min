@@ -21,6 +21,7 @@ try
     }
 
     var config = CliConfiguration.Resolve(options);
+    options = CliSavePrompts.Apply(options);
 
     string? systemPrompt = null;
     if (options.PromptFile is not null)
@@ -105,7 +106,9 @@ try
                 options.Format,
                 Instructions: options.Instructions,
                 SystemPrompt: systemPrompt,
-                Timestamps: options.Timestamps);
+                Timestamps: options.Timestamps,
+                From: options.From,
+                To: options.To);
 
             var batchResult = await pipeline.RunAsync(batchCommand, null, CancellationToken.None);
             items.Add(new BatchItem(urls[index], batchResult));
@@ -152,11 +155,21 @@ try
         options.Instructions,
         systemPrompt,
         transcript,
-        Timestamps: options.Timestamps);
+        Timestamps: options.Timestamps,
+        From: options.From,
+        To: options.To,
+        SaveVttPath: options.SaveVttPath,
+        SaveTranscriptPath: options.SaveTranscriptPath);
 
     IProgress<PipelineStage>? progress = options.Json ? null : new ConsoleProgress();
 
     var result = await pipeline.RunAsync(command, progress, CancellationToken.None);
+
+    if (result.IsSuccess && !string.IsNullOrWhiteSpace(options.SaveTranscriptPath))
+        Console.Error.WriteLine($"Transcript written to {options.SaveTranscriptPath}");
+
+    if (result.IsSuccess && !string.IsNullOrWhiteSpace(options.SaveVttPath))
+        Console.Error.WriteLine($"Subtitles written to {Path.GetFullPath(options.SaveVttPath)}");
 
     if (options.Json)
     {

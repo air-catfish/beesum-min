@@ -11,6 +11,10 @@ namespace Beesum.Core.Models;
 /// <param name="SystemPrompt">Full system-prompt override.</param>
 /// <param name="Transcript">Pre-parsed transcript; when set, the pipeline skips download and parsing.</param>
 /// <param name="Timestamps">Whether output and prompts should use <c>[hh:mm:ss]</c> cue times.</param>
+/// <param name="From">Optional clip start.</param>
+/// <param name="To">Optional clip end.</param>
+/// <param name="SaveVttPath">Optional path where the full downloaded/local VTT is copied.</param>
+/// <param name="SaveTranscriptPath">Optional path where the clipped transcript is written.</param>
 public sealed record SummarizeCommand(
     [property: SuppressMessage(
         "Design",
@@ -23,4 +27,8 @@ public sealed record SummarizeCommand(
     string? Instructions = null,
     string? SystemPrompt = null,
     Transcript? Transcript = null,
-    bool Timestamps = false);
+    bool Timestamps = false,
+    TimeSpan? From = null,
+    TimeSpan? To = null,
+    string? SaveVttPath = null,
+    string? SaveTranscriptPath = null);

@@ -139,7 +139,7 @@ public class AddBeesumTests
                 {
                     "--dump-json", "--no-playlist", "--skip-download",
                     "--proxy", "socks5://127.0.0.1:1080",
-                    url,
+                    "--", url,
                 },
                 inv.Arguments);
         }

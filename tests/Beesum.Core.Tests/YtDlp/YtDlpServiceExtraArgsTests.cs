@@ -47,7 +47,7 @@ public class YtDlpServiceExtraArgsTests
                 "--dump-json", "--no-playlist", "--skip-download",
                 "--proxy", "socks5://127.0.0.1:1080",
                 "--sleep-interval", "2",
-                Url,
+                "--", Url,
             },
             inv.Arguments);
     }
@@ -74,7 +74,7 @@ public class YtDlpServiceExtraArgsTests
                     "-o", "%(id)s.%(ext)s",
                     "--proxy", "socks5://127.0.0.1:1080",
                     "--sleep-interval", "2",
-                    Url,
+                    "--", Url,
                 },
                 inv.Arguments);
         }
@@ -147,7 +147,7 @@ public class YtDlpServiceExtraArgsTests
 
             Assert.Equal(new[] { "-U" }, updateRunner.Invocations[0].Arguments);
             Assert.Equal(
-                new[] { "--dump-json", "--no-playlist", "--skip-download", Url },
+                new[] { "--dump-json", "--no-playlist", "--skip-download", "--", Url },
                 runner.Invocations[0].Arguments);
             Assert.Equal(
                 new[]
@@ -157,7 +157,7 @@ public class YtDlpServiceExtraArgsTests
                     "--sub-langs", "en",
                     "--skip-download", "--no-playlist",
                     "-o", "%(id)s.%(ext)s",
-                    Url,
+                    "--", Url,
                 },
                 runner.Invocations[1].Arguments);
         }

@@ -60,7 +60,7 @@ internal sealed class YtDlpService : IYtDlpService
         string url,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(url)) return null;
+        if (!IsHttpUrl(url)) return null;
 
         var resolution = await SafeResolveAsync(cancellationToken).ConfigureAwait(false);
         if (resolution is null) return null;
@@ -70,6 +70,7 @@ internal sealed class YtDlpService : IYtDlpService
 
         var args = new List<string> { "--dump-json", "--no-playlist", "--skip-download" };
         args.AddRange(_extraArgs);
+        args.Add("--");
         args.Add(url);
 
         ProcessResult result;
@@ -217,6 +218,8 @@ internal sealed class YtDlpService : IYtDlpService
     {
         if (string.IsNullOrWhiteSpace(url))
             return new SubtitleDownloadResult(false, ErrorMessage: "URL is empty.");
+        if (!IsHttpUrl(url))
+            return new SubtitleDownloadResult(false, ErrorMessage: "Only http(s) URLs are supported.");
         if (string.IsNullOrWhiteSpace(outputDirectory))
             return new SubtitleDownloadResult(false, ErrorMessage: "Output directory is empty.");
 
@@ -240,6 +243,7 @@ internal sealed class YtDlpService : IYtDlpService
             "-o", "%(id)s.%(ext)s",
         };
         args.AddRange(_extraArgs);
+        args.Add("--");
         args.Add(url);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -286,6 +290,10 @@ internal sealed class YtDlpService : IYtDlpService
         _logger.LogDebug("Subtitles downloaded from yt-dlp.");
         return new SubtitleDownloadResult(true, vttFile, ExtractLanguage(vttFile));
     }
+
+    private static bool IsHttpUrl(string value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+        uri.Scheme is "http" or "https";
 
     private async Task<YtDlpResolution?> SafeResolveAsync(CancellationToken cancellationToken)
     {

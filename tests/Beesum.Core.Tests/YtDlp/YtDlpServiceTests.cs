@@ -71,7 +71,7 @@ public class YtDlpServiceTests
 
         var inv = Assert.Single(runner.Invocations);
         Assert.Equal(YtDlpPath, inv.FileName);
-        Assert.Equal(new[] { "--dump-json", "--no-playlist", "--skip-download", Url }, inv.Arguments);
+        Assert.Equal(new[] { "--dump-json", "--no-playlist", "--skip-download", "--", Url }, inv.Arguments);
     }
 
     [Fact]
@@ -207,6 +207,31 @@ public class YtDlpServiceTests
         finally { Directory.Delete(tempDir, recursive: true); }
     }
 
+    [Fact]
+    public async Task GetInfoAsync_FileUrl_ReturnsNullWithoutProcess()
+    {
+        var runner = new InMemoryProcessRunner();
+
+        Assert.Null(await CreateService(runner).GetInfoAsync("file:///etc/passwd", CancellationToken.None));
+        Assert.Empty(runner.Invocations);
+    }
+
+    [Fact]
+    public async Task DownloadSubtitlesAsync_FileUrl_ReturnsFailureWithoutProcess()
+    {
+        var tempDir = CreateTempDir();
+        try
+        {
+            var runner = new InMemoryProcessRunner();
+
+            var result = await CreateService(runner).DownloadSubtitlesAsync("file:///etc/passwd", tempDir, CancellationToken.None);
+
+            Assert.False(result.IsSuccess);
+            Assert.Contains("http", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+            Assert.Empty(runner.Invocations);
+        }
+        finally { Directory.Delete(tempDir, recursive: true); }
+    }
     private static string CreateTempDir()
     {
         var dir = Path.Combine(Path.GetTempPath(), "beesum-tests-" + Guid.NewGuid().ToString("N"));

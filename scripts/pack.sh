@@ -4,6 +4,21 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
+project_version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)"
+server_version_values="$(grep -o '"version": "[^"]*"' src/Beesum.Mcp/.mcp/server.json | sed 's/.*"\([^"]*\)"$/\1/')"
+
+if [ -z "$server_version_values" ]; then
+  echo "server.json has no version fields" >&2
+  exit 1
+fi
+
+for server_version in $server_version_values; do
+  if [ "$server_version" != "$project_version" ]; then
+    echo "server.json version $server_version does not match project version $project_version" >&2
+    exit 1
+  fi
+done
+
 rm -rf artifacts/packages
 mkdir -p artifacts/packages
 

@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>beesum-mcp</AssemblyName>
     <PackAsTool>true</PackAsTool>
+    <PackageType>McpServer</PackageType>
     <ToolCommandName>beesum-mcp</ToolCommandName>
     <PackageId>beesum-mcp</PackageId>
     <Title>beesum-mcp</Title>
@@ -28,6 +29,7 @@
   <ItemGroup>
     <None Include="../../assets/icon/beesum-min-128.png" Pack="true" PackagePath="\" />
     <None Include="../../docs/package-readme-mcp.md" Pack="true" PackagePath="README.md" />
+    <None Include=".mcp/server.json" Pack="true" PackagePath="/.mcp/" />
   </ItemGroup>
 
 </Project>

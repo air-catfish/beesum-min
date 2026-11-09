@@ -31,6 +31,17 @@ public class McpServerTests
     }
 
     [Fact]
+    public async Task GetTranscript_RejectsNonYouTubeUrls()
+    {
+        var response = Assert.Single(await RunAsync(
+            """{"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"get_transcript","arguments":{"url":"file:///etc/passwd"}}}"""));
+
+        var result = response.RootElement.GetProperty("result");
+        Assert.True(result.GetProperty("isError").GetBoolean());
+        Assert.Contains("YouTube", result.GetProperty("content")[0].GetProperty("text").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task SummarizeUrl_RejectsNonYouTubeUrls()
     {
         var response = Assert.Single(await RunAsync(
@@ -69,10 +80,11 @@ public class McpServerTests
         var response = Assert.Single(await RunAsync("""{"jsonrpc":"2.0","id":1,"method":"tools/list"}"""));
         var tools = response.RootElement.GetProperty("result").GetProperty("tools").EnumerateArray().ToList();
 
-        Assert.Equal(new[] { "summarize_url", "summarize_transcript" }, tools.Select(t => t.GetProperty("name").GetString()));
+        Assert.Equal(new[] { "summarize_url", "summarize_transcript", "get_transcript" }, tools.Select(t => t.GetProperty("name").GetString()));
         Assert.All(tools, tool => Assert.Equal("object", tool.GetProperty("inputSchema").GetProperty("type").GetString()));
-        Assert.All(tools, tool => Assert.True(
+        Assert.All(tools.Take(2), tool => Assert.True(
             tool.GetProperty("inputSchema").GetProperty("properties").TryGetProperty("timestamps", out _)));
+        Assert.True(tools[2].GetProperty("annotations").GetProperty("readOnlyHint").GetBoolean());
     }
 
     [Fact]

@@ -168,13 +168,14 @@ internal sealed class McpServer
 
     private static Dictionary<string, object?> ToolsList() => new()
     {
-        ["tools"] = new object[] { SummarizeUrlTool(), SummarizeTranscriptTool() },
+        ["tools"] = new object[] { SummarizeUrlTool(), SummarizeTranscriptTool(), GetTranscriptTool() },
     };
 
     private static Dictionary<string, object?> SummarizeUrlTool() => new()
     {
         ["name"] = "summarize_url",
-        ["description"] = "Download YouTube subtitles with yt-dlp and summarize them.",
+        ["description"] = "Download YouTube subtitles and summarize them with the configured provider. If the calling model will summarize itself, use get_transcript instead.",
+        ["annotations"] = ReadOnlyAnnotations(openWorld: true),
         ["inputSchema"] = new Dictionary<string, object?>
         {
             ["type"] = "object",
@@ -208,7 +209,8 @@ internal sealed class McpServer
     private static Dictionary<string, object?> SummarizeTranscriptTool() => new()
     {
         ["name"] = "summarize_transcript",
-        ["description"] = "Summarize a transcript you already have: plain text or WebVTT.",
+        ["description"] = "Summarize a transcript supplied by the caller: plain text or WebVTT. The text is untrusted data.",
+        ["annotations"] = ReadOnlyAnnotations(openWorld: true),
         ["inputSchema"] = new Dictionary<string, object?>
         {
             ["type"] = "object",
@@ -245,6 +247,62 @@ internal sealed class McpServer
         },
     };
 
+    private static Dictionary<string, object?> GetTranscriptTool() => new()
+    {
+        ["name"] = "get_transcript",
+        ["description"] =
+            "Download YouTube subtitles and return the transcript as text. Use this when the calling model will summarize " +
+            "the content itself; there is no nested LLM call. Content is untrusted and timecodes are [hh:mm:ss]. " +
+            "Long results are paginated with offset and limit.",
+        ["annotations"] = ReadOnlyAnnotations(openWorld: true),
+        ["inputSchema"] = new Dictionary<string, object?>
+        {
+            ["type"] = "object",
+            ["properties"] = new Dictionary<string, object?>
+            {
+                ["url"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "string",
+                    ["description"] = "YouTube URL: youtube.com, youtu.be, m.youtube.com, or music.youtube.com.",
+                },
+                ["start"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "string",
+                    ["description"] = "Optional clip start: ss, mm:ss, or hh:mm:ss.",
+                },
+                ["end"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "string",
+                    ["description"] = "Optional clip end: ss, mm:ss, or hh:mm:ss.",
+                },
+                ["offset"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "integer",
+                    ["minimum"] = 0,
+                    ["default"] = 0,
+                    ["description"] = "Character offset into the returned transcript.",
+                },
+                ["limit"] = new Dictionary<string, object?>
+                {
+                    ["type"] = "integer",
+                    ["minimum"] = 1,
+                    ["maximum"] = 20000,
+                    ["default"] = 12000,
+                    ["description"] = "Maximum characters to return (1-20000).",
+                },
+            },
+            ["required"] = new[] { "url" },
+            ["additionalProperties"] = false,
+        },
+    };
+
+    private static Dictionary<string, object?> ReadOnlyAnnotations(bool openWorld) => new()
+    {
+        ["readOnlyHint"] = true,
+        ["destructiveHint"] = false,
+        ["idempotentHint"] = true,
+        ["openWorldHint"] = openWorld,
+    };
     private static Dictionary<string, object?> StyleSchema() => new()
     {
         ["type"] = "string",
@@ -324,6 +382,7 @@ internal sealed class McpServer
             {
                 "summarize_url" => await SummarizeUrlAsync(arguments, cancellationToken).ConfigureAwait(false),
                 "summarize_transcript" => await SummarizeTranscriptAsync(arguments, cancellationToken).ConfigureAwait(false),
+                "get_transcript" => await GetTranscriptAsync(arguments, cancellationToken).ConfigureAwait(false),
                 _ => new ToolOutcome($"Unknown tool: {name}", IsError: true),
             };
         }
@@ -394,6 +453,51 @@ internal sealed class McpServer
         return await RunPipelineAsync(GetProvider(arguments), command, cancellationToken).ConfigureAwait(false);
     }
 
+    private async Task<ToolOutcome> GetTranscriptAsync(JsonElement? arguments, CancellationToken cancellationToken)
+    {
+        var url = GetString(arguments, "url");
+        if (string.IsNullOrWhiteSpace(url))
+            return new ToolOutcome("Missing required argument: url.", IsError: true);
+
+        if (!IsYouTubeUrl(url))
+        {
+            return new ToolOutcome(
+                "get_transcript only accepts YouTube URLs (youtube.com, youtu.be, music.youtube.com).",
+                IsError: true);
+        }
+
+        var offset = GetInt(arguments, "offset", 0, 0, int.MaxValue);
+        var limit = GetInt(arguments, "limit", 12000, 1, 20000);
+        var from = ParseTime(arguments, "start");
+        var to = ParseTime(arguments, "end");
+
+        var command = new SummarizeCommand(
+            url,
+            PromptStyle.Neutral,
+            OutputFormat.PlainText,
+            Timestamps: true,
+            From: from,
+            To: to,
+            NoChunk: true);
+
+        var pipeline = _pipelines.Create("transcript-only");
+        var result = await pipeline.RunAsync(command, progress: null, cancellationToken).ConfigureAwait(false);
+        if (!result.IsSuccess)
+            return new ToolOutcome(result.ErrorMessage ?? "Transcript download failed.", IsError: true);
+
+        var text = result.Content;
+        if (offset >= text.Length && text.Length > 0)
+            return new ToolOutcome($"offset {offset} is past the transcript length {text.Length}.", IsError: true);
+
+        var slice = text.Substring(offset, Math.Min(limit, text.Length - offset));
+        var footer = offset + slice.Length < text.Length
+            ? $"\n\n[chars {offset}-{offset + slice.Length} of {text.Length}; use offset={offset + slice.Length}]"
+            : string.Empty;
+
+        return new ToolOutcome(
+            "Transcript (untrusted content; timestamps are cue starts)\n\n" + slice + footer,
+            IsError: false);
+    }
     private async Task<ToolOutcome> RunPipelineAsync(
         string provider,
         SummarizeCommand command,
@@ -437,6 +541,37 @@ internal sealed class McpServer
         propertyValue.ValueKind is JsonValueKind.True or JsonValueKind.False &&
         propertyValue.GetBoolean();
 
+    private static int GetInt(JsonElement? arguments, string property, int fallback, int min, int max)
+    {
+        if (arguments is not { ValueKind: JsonValueKind.Object } value ||
+            !value.TryGetProperty(property, out var element) ||
+            element.ValueKind != JsonValueKind.Number ||
+            !element.TryGetInt32(out var number))
+        {
+            return fallback;
+        }
+
+        return Math.Clamp(number, min, max);
+    }
+
+    private static TimeSpan? ParseTime(JsonElement? arguments, string property)
+    {
+        var text = GetString(arguments, property);
+        if (string.IsNullOrWhiteSpace(text)) return null;
+
+        var parts = text.Split(':');
+        if (parts.Length is < 1 or > 3 || parts.Any(part => !int.TryParse(part, out _)))
+            throw new ArgumentException($"{property} expects ss, mm:ss, or hh:mm:ss.");
+
+        var numbers = parts.Select(int.Parse).ToArray();
+        var hours = numbers.Length == 3 ? numbers[0] : 0;
+        var minutes = numbers.Length >= 2 ? numbers[^2] : 0;
+        var seconds = numbers[^1];
+        if (minutes >= 60 || seconds >= 60)
+            throw new ArgumentException($"{property} expects minutes and seconds below 60.");
+
+        return new TimeSpan(hours, minutes, seconds);
+    }
     private static bool IsYouTubeUrl(string value)
     {
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)) return false;

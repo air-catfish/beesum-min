@@ -262,7 +262,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 "No subtitle text found.");
         }
 
-        var result = _chunkingEnabled && TokenEstimator.Estimate(transcript) > _chunkTokens
+        var result = _chunkingEnabled && !command.NoChunk && TokenEstimator.Estimate(transcript) > _chunkTokens
             ? await SummarizeChunkedAsync(
                 provider,
                 transcript,

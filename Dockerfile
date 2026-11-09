@@ -13,7 +13,7 @@ RUN dotnet publish src/Beesum.Min.Cli/Beesum.Min.Cli.csproj \
         -p:NuGetAudit=false -o /app
 
 # Runtime: no .NET runtime needed, the app is self-contained.
-FROM mcr.microsoft.com/dotnet/runtime-deps:10.0.4@sha256:cd7a01db7af22938a7e5cd938aa0e1a4d0edfb96b7134476c31c954197b5461e AS runtime
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0.14@sha256:f87d6824cd56fa4ad117d06461e4eb0058f46a159872dbcc4a836a72efdd1bec AS runtime
 ARG YTDLP_VERSION=2026.10.26
 ARG YTDLP_SHA256=767ba9dce7052aa196f8b12652f433d76de128ba168966fa84b6394d5e6c6795
 ARG DENO_VERSION=2.9.8

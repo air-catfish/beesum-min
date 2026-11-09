@@ -1,0 +1,111 @@
+/* Suprematist layer for beesum-min: paper, black, red, hard edges. */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #111111;
+  --md-primary-fg-color--light: #222222;
+  --md-primary-fg-color--dark: #000000;
+  --md-primary-bg-color: #f1ede3;
+  --md-primary-bg-color--light: #f1ede3;
+  --md-accent-fg-color: #d71920;
+  --md-default-bg-color: #f1ede3;
+  --md-default-fg-color: #111111;
+  --md-default-fg-color--light: #3b3b3b;
+  --md-default-fg-color--lighter: #666666;
+  --md-typeset-a-color: #c8102e;
+  --md-code-bg-color: #e4ded1;
+  --md-code-fg-color: #111111;
+  --md-footer-bg-color: #111111;
+  --md-footer-fg-color: #f1ede3;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #000000;
+  --md-primary-fg-color--light: #1a1a1a;
+  --md-primary-fg-color--dark: #000000;
+  --md-primary-bg-color: #f1ede3;
+  --md-default-bg-color: #0b0b0b;
+  --md-default-fg-color: #f1ede3;
+  --md-default-fg-color--light: #d8d2c6;
+  --md-default-fg-color--lighter: #a7a196;
+  --md-accent-fg-color: #ef2b2d;
+  --md-typeset-a-color: #ff4b4b;
+  --md-code-bg-color: #181818;
+  --md-code-fg-color: #f1ede3;
+  --md-footer-bg-color: #000000;
+  --md-footer-fg-color: #f1ede3;
+}
+
+html { background: #f1ede3; }
+body { font-family: "Helvetica Neue", "Arial", "Liberation Sans", sans-serif; }
+
+.md-header {
+  background: linear-gradient(105deg, #111111 0 77%, #d71920 77% 81%, #111111 81% 100%);
+  border-bottom: 5px solid #111111;
+  box-shadow: none;
+}
+.md-tabs { background: #111111; border-bottom: 1px solid #333333; box-shadow: none; }
+.md-header, .md-header a, .md-tabs, .md-tabs a { color: #f1ede3; }
+.md-header__title { font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+.md-header__title::after {
+  content: ""; display: inline-block; width: .55em; height: .55em;
+  margin-left: .55em; background: #d71920; transform: rotate(9deg); vertical-align: .05em;
+}
+
+.md-header__button.md-logo svg { display: none; }
+.md-header__button.md-logo::before {
+  content: ""; display: block; width: 2rem; height: 2rem;
+  background: #f1ede3 url("/beesum-min/logo.png") center / contain no-repeat;
+  border: 3px solid #111111;
+}
+.md-header__inner::after {
+  content: ""; display: block; width: 14px; height: 14px;
+  margin-left: auto; background: #d71920; transform: rotate(12deg);
+}
+
+.md-main {
+  background-image: linear-gradient(90deg, rgba(17, 17, 17, .035) 1px, transparent 1px);
+  background-size: 96px 100%;
+}
+.md-sidebar__scrollwrap { border-left: 1px solid rgba(17, 17, 17, .15); }
+.md-nav__link { border-radius: 0; }
+.md-nav__link--active, .md-nav__link--active:hover {
+  background: #d71920; color: #ffffff !important; padding-left: .35rem;
+}
+.md-nav__link:hover { color: #c8102e; }
+
+.md-typeset h1 {
+  font-weight: 900; letter-spacing: -.02em; line-height: 1.05;
+  text-transform: uppercase; border-left: 12px solid #d71920; padding-left: .6rem;
+}
+.md-typeset h2 {
+  font-weight: 900; letter-spacing: .01em; text-transform: uppercase;
+  border-bottom: 3px solid currentColor; padding-bottom: .2rem;
+}
+.md-typeset h3 { font-weight: 800; text-transform: uppercase; }
+.md-typeset a { text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.md-typeset a:hover { background: #d71920; color: #ffffff; text-decoration: none; }
+
+.md-typeset .admonition, .md-typeset details, .md-typeset table:not([class]),
+.md-typeset pre > code, .md-typeset code, .md-button, .md-search__form, .md-search__input {
+  border-radius: 0;
+}
+.md-typeset .admonition, .md-typeset details {
+  border-left-width: 6px; box-shadow: 5px 5px 0 rgba(17, 17, 17, .18);
+}
+.md-typeset table:not([class]) {
+  border: 2px solid #111111; box-shadow: 5px 5px 0 rgba(17, 17, 17, .18);
+}
+.md-typeset table:not([class]) th {
+  background: #111111; color: #f1ede3; font-weight: 800; text-transform: uppercase;
+}
+.md-button {
+  font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  box-shadow: 4px 4px 0 #111111;
+}
+.md-button--primary { background: #d71920; border-color: #d71920; color: #ffffff; }
+.md-footer { border-top: 5px solid #d71920; }
+.md-typeset pre > code { box-shadow: 5px 5px 0 rgba(17, 17, 17, .12); }
+
+@media screen and (max-width: 76.2344em) {
+  .md-header__inner::after { display: none; }
+}

@@ -167,7 +167,7 @@ call it instead of rebuilding the prompt.
 Implement `ILlmProvider`, register it after `AddBeesum`, and point
 `LlmProviderId`/`Create` at its `Id`. Reuse the public prompt builder
 `LlmPrompts.BuildSystemPrompt(style, format)`. See
-[adding-a-provider.md](adding-a-provider.md) for a full walkthrough.
+[adding a provider](https://github.com/air-catfish/beesum-min/blob/main/docs/adding-a-provider.md) for a full walkthrough.
 
 Built-in implementations are internal; register and select them through DI.
 

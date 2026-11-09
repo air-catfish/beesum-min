@@ -1,10 +1,12 @@
 site_name: beesum-min
-site_url: https://air-catfish.codeberg.page/beesum-min/
-repo_url: https://codeberg.org/air-catfish/beesum-min
+site_url: https://air-catfish.github.io/beesum-min/
+repo_url: https://github.com/air-catfish/beesum-min
 repo_name: air-catfish/beesum-min
 edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: artifacts/docs-site
+extra_css:
+  - assets/stylesheets/suprematism.css
 use_directory_urls: true
 
 theme:
@@ -16,18 +18,18 @@ theme:
     - content.code.copy
     - search.highlight
   palette:
-    - scheme: slate
-      primary: deep orange
-      accent: amber
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
     - scheme: default
       primary: deep orange
       accent: amber
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
+    - scheme: slate
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
 
 markdown_extensions:
   - admonition
@@ -45,37 +47,24 @@ nav:
   - Home: index.md
   - Install: install.md
   - CLI: cli.md
-  - Library: embedding.md
-  - Prompts: prompts.md
-  - Editors: editors.md
   - MCP: mcp.md
-  - Languages: languages.md
-  - Chunking: chunking.md
-  - Packaging: packaging.md
-  - Testing: testing.md
+  - Library: embedding.md
   - Security: security.md
-  - Server:
-      - Architecture: server/architecture.md
-      - Security model: server/security.md
-      - Tenancy: server/tenancy.md
-  - Integrations:
-      - Chat bots: integrations/chat-bots.md
-  - For agents: for-agents.md
-  - Advanced:
-      - Adding a provider: adding-a-provider.md
-      - API providers: api-providers.md
-      - JSON output: json-output.md
-      - Versioning: versioning.md
-      - Good first issues: good-first-issues.md
-  - Hosting: hosting.md
-  - Release notes:
-      - v0.2.3: release-notes/v0.2.3.md
-      - v0.2.2: release-notes/v0.2.2.md
-      - v0.2.1: release-notes/v0.2.1.md
-      - v0.2.0: release-notes/v0.2.0.md
-  - Troubleshooting:
-      - vstest low integrity: troubleshooting/vstest-low-integrity.md
 
 exclude_docs: |
   package-readme*.md
   bugs/BEESUM-001.md
+  adding-a-provider.md
+  api-providers.md
+  chunking.md
+  editors.md
+  for-agents.md
+  good-first-issues.md
+  json-output.md
+  languages.md
+  packaging.md
+  prompts.md
+  release-notes/
+  testing.md
+  troubleshooting/
+  versioning.md

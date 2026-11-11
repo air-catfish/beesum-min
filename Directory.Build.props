@@ -18,6 +18,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReleaseNotes>See https://github.com/air-catfish/beesum-min/blob/main/CHANGELOG.md</PackageReleaseNotes>
 
     <!-- Строгость: предупреждения = ошибки. Если build покраснеет —
          сначала гасим конкретные коды в .editorconfig, потом уже здесь. -->

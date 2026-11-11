@@ -1,8 +1,10 @@
 # MCP server
 
-`beesum-mcp` is a small Model Context Protocol server over stdio. It exposes the
-same pipeline as the CLI as two tools, so an agent can summarize a YouTube video
-or a transcript it already has.
+`beesum-mcp` is a small Model Context Protocol server over stdio. Its main tool,
+`get_transcript`, downloads YouTube subtitles and returns clean, timestamped text
+so the calling model can summarize it itself. When `BEESUM_PROVIDER` selects a
+real LLM provider, two more tools appear: `summarize_url` and
+`summarize_transcript`, which run the same pipeline as the CLI.
 
 ## Install and configure
 
@@ -30,6 +32,23 @@ Remove `BEESUM_PROXY` unless you need one. `BEESUM_PROVIDER` defaults to
 `transcript-only`.
 
 ## Tools
+
+With the default `transcript-only` provider the server lists only `get_transcript`.
+`summarize_url` and `summarize_transcript` are listed (and callable) only when
+`BEESUM_PROVIDER` is set to `ollama`, `openai-compatible`, `anthropic` or `gemini`.
+Calling them without a provider returns an error that points to `get_transcript`.
+
+### `get_transcript`
+
+| Argument | Type | Meaning |
+| --- | --- | --- |
+| `url` | string, required | YouTube URL (youtube.com, youtu.be, m.youtube.com, music.youtube.com). |
+| `start`, `end` | string | Optional clip range: `ss`, `mm:ss` or `hh:mm:ss`. |
+| `offset` | integer | Character offset into the transcript (default 0). |
+| `limit` | integer | Maximum characters to return, 1-20000 (default 12000). |
+
+The result is timestamped text marked as untrusted content. When the transcript is
+longer than `limit`, the result ends with the `offset` to request next.
 
 ### `summarize_url`
 
@@ -88,6 +107,6 @@ The server is meant for a local MCP client: one process, one user, one session.
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"shell","version":"1"}}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
-  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"summarize_transcript","arguments":{"text":"Hello world"}}}' \
+  '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_transcript","arguments":{"url":"https://www.youtube.com/watch?v=VIDEO_ID"}}}' \
   | beesum-mcp
 ```

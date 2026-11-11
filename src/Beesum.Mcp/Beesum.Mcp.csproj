@@ -8,8 +8,8 @@
     <ToolCommandName>beesum-mcp</ToolCommandName>
     <PackageId>beesum-mcp</PackageId>
     <Title>beesum-mcp</Title>
-    <Description>MCP stdio server for beesum-min: summarize YouTube URLs or supplied transcripts from an LLM agent.</Description>
-    <PackageTags>mcp;model-context-protocol;youtube;summarizer;transcript;yt-dlp;llm;cli</PackageTags>
+    <Description>MCP stdio server that gives LLM agents YouTube transcripts (get_transcript) and optional summaries. Uses yt-dlp; transcripts stay on your machine.</Description>
+    <PackageTags>mcp;mcp-server;model-context-protocol;youtube;youtube-transcript;transcript;subtitles;summarizer;yt-dlp;llm;ai-agents</PackageTags>
     <PackageIcon>beesum-min-128.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

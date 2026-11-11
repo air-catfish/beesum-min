@@ -17,6 +17,11 @@ All notable changes are documented here. The format follows
 - Provider HTTP clients no longer use the default 100-second `HttpClient`
   timeout; each provider enforces its own limit. Ollama now allows 10 minutes
   per request instead of 2.
+- `global.json` opts in to the Microsoft.Testing.Platform runner so that
+  `dotnet test` works on the .NET 10 SDK.
+- `beesum-mcp` package: README rewritten around `get_transcript` and now carries
+  the `mcp-name` marker the MCP Registry checks; `server.json` documents the
+  environment variables; richer description, tags and release-notes link.
 
 ## [0.2.3] - 2026-11-09
 

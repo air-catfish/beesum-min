@@ -4,6 +4,20 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- MCP: with the default `transcript-only` provider the server lists only
+  `get_transcript`; `summarize_url` and `summarize_transcript` appear only when
+  `BEESUM_PROVIDER` selects a real LLM provider. Server instructions now point
+  to `get_transcript` first.
+- Pipeline: `transcript-only` no longer splits the transcript into chunks and
+  "combines" them back.
+- Provider HTTP clients no longer use the default 100-second `HttpClient`
+  timeout; each provider enforces its own limit. Ollama now allows 10 minutes
+  per request instead of 2.
+
 ## [0.2.3] - 2026-11-09
 
 ### Added

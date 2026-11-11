@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Beesum.Core.Abstractions;
+using Beesum.Core.Llm;
 using Beesum.Core.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -262,7 +263,11 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 "No subtitle text found.");
         }
 
-        var result = _chunkingEnabled && !command.NoChunk && TokenEstimator.Estimate(transcript) > _chunkTokens
+        // transcript-only just hands the text back, so splitting it into chunks and
+        // "combining" the parts would only add calls without changing the result.
+        var result = _chunkingEnabled && !command.NoChunk &&
+                     provider is not TranscriptOnlyLlmProvider &&
+                     TokenEstimator.Estimate(transcript) > _chunkTokens
             ? await SummarizeChunkedAsync(
                 provider,
                 transcript,

@@ -24,7 +24,8 @@ internal sealed class OllamaLlmProvider : ILlmProvider
     private readonly string _model;
     private readonly ILogger<OllamaLlmProvider> _logger;
     private readonly TimeSpan _probeTimeout = TimeSpan.FromSeconds(5);
-    private readonly TimeSpan _summarizeTimeout = TimeSpan.FromMinutes(2);
+    // Local models on CPU can need several minutes per chunk, unlike cloud APIs.
+    private readonly TimeSpan _summarizeTimeout = TimeSpan.FromMinutes(10);
 
     /// <summary>
     /// Creates a provider targeting an Ollama server.

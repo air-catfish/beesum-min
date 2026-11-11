@@ -1,3 +1,5 @@
+using Beesum.Core.Abstractions;
+using Beesum.Core.Llm;
 using Beesum.Core.Models;
 using Beesum.Core.Pipeline;
 using Beesum.Testing;
@@ -604,6 +606,28 @@ public class SummarizerPipelineTests
             File.Delete(target);
         }
     }
+    [Fact]
+    public async Task RunAsync_TranscriptOnlyProvider_ReturnsFullTextWithoutChunking()
+    {
+        var transcript = LongTranscript();
+        var pipeline = new SummarizerPipeline(
+            new InMemoryYtDlpService(),
+            Parser(),
+            new ILlmProvider[] { new TranscriptOnlyLlmProvider() },
+            chunkTokens: 20);
+
+        var command = new SummarizeCommand(
+            Url: string.Empty,
+            PromptStyle.Neutral,
+            OutputFormat.PlainText,
+            Transcript: transcript);
+
+        var result = await pipeline.RunAsync(command, cancellationToken: CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(transcript.ToPlainText(), result.Content);
+    }
+
     private static Transcript LongTranscript() =>
         new("abc", "en", Enumerable.Range(0, 12)
             .Select(i => new SubtitleSegment(

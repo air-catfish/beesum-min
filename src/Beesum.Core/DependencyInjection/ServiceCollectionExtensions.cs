@@ -112,6 +112,13 @@ public static class ServiceCollectionExtensions
         return AddBeesumServices(services, options);
     }
 
+    /// <summary>
+    /// Providers enforce their own time limits with a cancellation token, so the default
+    /// 100-second <see cref="HttpClient.Timeout"/> must not cut a request off first.
+    /// </summary>
+    private static void NoClientTimeout(HttpClient client) =>
+        client.Timeout = Timeout.InfiniteTimeSpan;
+
     private static IServiceCollection AddBeesumServices(
         IServiceCollection services,
         BeesumOptions options)
@@ -154,7 +161,7 @@ public static class ServiceCollectionExtensions
 
         if (!string.IsNullOrWhiteSpace(options.OllamaBaseUrl))
         {
-            services.AddHttpClient("ollama");
+            services.AddHttpClient("ollama").ConfigureHttpClient(NoClientTimeout);
             services.AddSingleton<ILlmProvider>(sp =>
                 new OllamaLlmProvider(
                     sp.GetRequiredService<IHttpClientFactory>(),
@@ -165,7 +172,7 @@ public static class ServiceCollectionExtensions
 
         if (!string.IsNullOrWhiteSpace(options.OpenAiBaseUrl))
         {
-            services.AddHttpClient("openai");
+            services.AddHttpClient("openai").ConfigureHttpClient(NoClientTimeout);
             services.AddSingleton<ILlmProvider>(sp =>
             {
                 var keyProvider = options.OpenAiApiKeyProvider ?? (async ct =>
@@ -184,7 +191,7 @@ public static class ServiceCollectionExtensions
 
         if (!string.IsNullOrWhiteSpace(options.AnthropicBaseUrl))
         {
-            services.AddHttpClient("anthropic");
+            services.AddHttpClient("anthropic").ConfigureHttpClient(NoClientTimeout);
             services.AddSingleton<ILlmProvider>(sp =>
             {
                 var keyProvider = options.AnthropicApiKeyProvider ?? (async ct =>
@@ -204,7 +211,7 @@ public static class ServiceCollectionExtensions
 
         if (!string.IsNullOrWhiteSpace(options.GeminiBaseUrl))
         {
-            services.AddHttpClient("gemini");
+            services.AddHttpClient("gemini").ConfigureHttpClient(NoClientTimeout);
             services.AddSingleton<ILlmProvider>(sp =>
             {
                 var keyProvider = options.GeminiApiKeyProvider ?? (async ct =>

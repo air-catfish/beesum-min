@@ -13,6 +13,10 @@ internal sealed class McpServer
     private const string LatestProtocolVersion = "2025-06-18";
     private static readonly string[] SupportedProtocols = { "2024-11-05", "2025-03-26", "2025-06-18" };
 
+    private const string TruncationNote =
+        "\n\n[Warning: the summary may be incomplete; the model reached its output or context limit. " +
+        "Raise BEESUM_MAX_TOKENS (cloud providers) or BEESUM_OLLAMA_NUM_CTX (Ollama).]";
+
     private const string NoProviderMessage =
         "No LLM provider is configured on this server (BEESUM_PROVIDER is transcript-only). " +
         "Use get_transcript and summarize the text yourself, or ask the user to set BEESUM_PROVIDER.";
@@ -520,9 +524,14 @@ internal sealed class McpServer
         var pipeline = _pipelines.Create(provider);
         var result = await pipeline.RunAsync(command, progress: null, cancellationToken).ConfigureAwait(false);
 
-        return result.IsSuccess
-            ? new ToolOutcome(result.Content, IsError: false)
-            : new ToolOutcome(result.ErrorMessage ?? "Summary failed.", IsError: true);
+        if (!result.IsSuccess)
+            return new ToolOutcome(result.ErrorMessage ?? "Summary failed.", IsError: true);
+
+        var text = result.Truncated
+            ? result.Content + TruncationNote
+            : result.Content;
+
+        return new ToolOutcome(text, IsError: false);
     }
 
     private PromptStyle GetStyle(JsonElement? arguments) =>

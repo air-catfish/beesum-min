@@ -179,6 +179,23 @@ public class OpenAiCompatibleLlmProviderTests
         Assert.Equal("Summarize timed out.", result.ErrorMessage);
     }
 
+    [Theory]
+    [InlineData("length", true)]
+    [InlineData("stop", false)]
+    public async Task SummarizeAsync_FinishReason_SetsTruncated(string finishReason, bool expected)
+    {
+        var body =
+            "{\"model\":\"gpt-test\",\"choices\":[{\"finish_reason\":\"" + finishReason + "\"," +
+            "\"message\":{\"content\":\"ok\"}}]}";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(body);
+
+        var result = await CreateProvider(handler)
+            .SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expected, result.Truncated);
+    }
+
     [Fact]
     public async Task SummarizeAsync_CallerCancellation_Throws()
     {

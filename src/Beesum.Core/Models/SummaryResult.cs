@@ -19,4 +19,11 @@ public sealed record SummaryResult(
     string? ErrorMessage = null,
     string? ModelName = null,
     TokenUsage? Usage = null,
-    TimeSpan? Duration = null);
+    TimeSpan? Duration = null)
+{
+    /// <summary>
+    /// <c>true</c> when the provider reported that the reply hit its output limit or that
+    /// the input did not fit the context window, so the summary may be incomplete.
+    /// </summary>
+    public bool Truncated { get; init; }
+}

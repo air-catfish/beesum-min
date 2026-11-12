@@ -6,6 +6,19 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `SummaryResult.Truncated`: providers report when a reply hit its output limit
+  (`stop_reason: max_tokens`, `finish_reason: length`, `finishReason: MAX_TOKENS`,
+  `done_reason: length`) or when an Ollama prompt filled the context window. The CLI
+  prints a warning to stderr (JSON output is unchanged) and MCP appends a note to
+  the summary.
+- Ollama requests now set `num_ctx` explicitly: `BeesumOptions.OllamaContextTokens`
+  (default 8192, never below `ChunkTokens` + 2048) and the `BEESUM_OLLAMA_NUM_CTX`
+  environment variable for the CLI and `beesum-mcp`. Without it Ollama could silently
+  cut the start of a long transcript.
+- `beesum-mcp`: `BEESUM_MAX_TOKENS` sets the output token limit.
+
 ### Changed
 
 - MCP: with the default `transcript-only` provider the server lists only

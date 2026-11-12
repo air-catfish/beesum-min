@@ -316,6 +316,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
         var partials = new List<string>(chunks.Count);
         var usages = new List<TokenUsage>();
         string? modelName = null;
+        var anyTruncated = false;
 
         for (var index = 0; index < chunks.Count; index++)
         {
@@ -351,6 +352,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
             partials.Add(partial.Content);
             if (partial.Usage is not null) usages.Add(partial.Usage);
             modelName ??= partial.ModelName;
+            anyTruncated |= partial.Truncated;
         }
 
         var final = await ReduceAsync(
@@ -379,6 +381,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
             ModelName = final.ModelName ?? modelName,
             Usage = SumUsage(usages),
             Duration = stopwatch.Elapsed,
+            Truncated = final.Truncated || anyTruncated,
         };
     }
 

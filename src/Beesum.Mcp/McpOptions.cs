@@ -17,6 +17,12 @@ internal static class McpOptions
         options.OllamaBaseUrl = Env("BEESUM_OLLAMA_URL") ?? "http://localhost:11434";
         options.OllamaModel = Env("BEESUM_OLLAMA_MODEL") ?? "llama3.2";
 
+        if (int.TryParse(Env("BEESUM_OLLAMA_NUM_CTX"), out var numCtx) && numCtx > 0)
+            options.OllamaContextTokens = numCtx;
+
+        if (int.TryParse(Env("BEESUM_MAX_TOKENS"), out var maxTokens) && maxTokens > 0)
+            options.MaxOutputTokens = maxTokens;
+
         var openAiKey = Env("OPENAI_API_KEY");
         if (openAiKey is not null)
         {

@@ -49,6 +49,20 @@
           "default": "llama3.2"
         },
         {
+          "name": "BEESUM_OLLAMA_NUM_CTX",
+          "description": "Ollama context window in tokens. Raise it if long transcripts are cut off.",
+          "format": "number",
+          "isRequired": false,
+          "default": "8192"
+        },
+        {
+          "name": "BEESUM_MAX_TOKENS",
+          "description": "Maximum output tokens for the cloud providers.",
+          "format": "number",
+          "isRequired": false,
+          "default": "1024"
+        },
+        {
           "name": "OPENAI_API_KEY",
           "description": "API key that enables the OpenAI-compatible provider.",
           "format": "string",

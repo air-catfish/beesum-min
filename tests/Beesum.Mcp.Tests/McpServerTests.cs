@@ -201,6 +201,19 @@ public class McpServerTests
     }
 
     [Fact]
+    public async Task SummarizeTranscript_TruncatedReply_AppendsWarning()
+    {
+        var response = Assert.Single(await RunWithProviderAsync(
+            """{"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"summarize_transcript","arguments":{"text":"TRUNCATE-ME please"}}}"""));
+
+        var result = response.RootElement.GetProperty("result");
+        Assert.False(result.TryGetProperty("isError", out _));
+        var text = result.GetProperty("content")[0].GetProperty("text").GetString();
+        Assert.StartsWith("TRUNCATE-ME please", text, StringComparison.Ordinal);
+        Assert.Contains("may be incomplete", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task UnknownTool_ReturnsToolError()
     {
         var response = Assert.Single(await RunAsync(
@@ -251,7 +264,13 @@ public class McpServerTests
 
         public Task<SummaryResult> SummarizeAsync(
             SummaryRequest request,
-            CancellationToken cancellationToken = default) =>
-            Task.FromResult(new SummaryResult(true, request.Transcript.ToPlainText(request.Timestamps), Id));
+            CancellationToken cancellationToken = default)
+        {
+            var text = request.Transcript.ToPlainText(request.Timestamps);
+            return Task.FromResult(new SummaryResult(true, text, Id)
+            {
+                Truncated = text.Contains("TRUNCATE-ME", StringComparison.Ordinal),
+            });
+        }
     }
 }

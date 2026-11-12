@@ -115,6 +115,22 @@ public class GeminiLlmProviderTests
         Assert.Empty(handler.Requests);
     }
 
+    [Theory]
+    [InlineData("MAX_TOKENS", true)]
+    [InlineData("STOP", false)]
+    public async Task SummarizeAsync_FinishReason_SetsTruncated(string finishReason, bool expected)
+    {
+        var body =
+            "{\"candidates\":[{\"finishReason\":\"" + finishReason + "\"," +
+            "\"content\":{\"parts\":[{\"text\":\"ok\"}]}}]}";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(body);
+
+        var result = await CreateProvider(handler).SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expected, result.Truncated);
+    }
+
     [Fact]
     public async Task SummarizeAsync_CallerCancellation_Throws()
     {

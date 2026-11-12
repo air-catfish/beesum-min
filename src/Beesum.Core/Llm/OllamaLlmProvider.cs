@@ -22,6 +22,7 @@ internal sealed class OllamaLlmProvider : ILlmProvider
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly string _baseUrl;
     private readonly string _model;
+    private readonly int _contextTokens;
     private readonly ILogger<OllamaLlmProvider> _logger;
     private readonly TimeSpan _probeTimeout = TimeSpan.FromSeconds(5);
     // Local models on CPU can need several minutes per chunk, unlike cloud APIs.
@@ -34,18 +35,25 @@ internal sealed class OllamaLlmProvider : ILlmProvider
     /// <param name="baseUrl">Base URL, e.g. <c>http://localhost:11434</c>.</param>
     /// <param name="model">Model name, e.g. <c>llama3.2</c>.</param>
     /// <param name="logger">Optional logger; <c>null</c> uses a no-op logger.</param>
+    /// <param name="contextTokens">
+    /// Context window requested from Ollama (<c>num_ctx</c>). Without it Ollama uses its own
+    /// default, which can be too small and silently cuts the start of a long transcript.
+    /// </param>
     public OllamaLlmProvider(
         IHttpClientFactory httpClientFactory,
         string baseUrl = "http://localhost:11434",
         string model = "llama3.2",
-        ILogger<OllamaLlmProvider>? logger = null)
+        ILogger<OllamaLlmProvider>? logger = null,
+        int contextTokens = 8192)
     {
         ArgumentNullException.ThrowIfNull(httpClientFactory);
         ArgumentException.ThrowIfNullOrWhiteSpace(baseUrl);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(contextTokens);
         _httpClientFactory = httpClientFactory;
         _baseUrl = baseUrl.TrimEnd('/');
         _model = model;
+        _contextTokens = contextTokens;
         _logger = logger ?? NullLogger<OllamaLlmProvider>.Instance;
     }
 
@@ -126,6 +134,7 @@ internal sealed class OllamaLlmProvider : ILlmProvider
                     new { role = "user", content = request.Transcript.ToPlainText(request.Timestamps) },
                 },
                 stream = false,
+                options = new { num_ctx = _contextTokens },
             };
 
             var stopwatch = Stopwatch.StartNew();
@@ -156,14 +165,35 @@ internal sealed class OllamaLlmProvider : ILlmProvider
 
             stopwatch.Stop();
             var modelName = TryGetString(doc.RootElement, "model") ?? _model;
+            var usage = ReadUsage(doc.RootElement);
+
+            var outputCut = string.Equals(
+                TryGetString(doc.RootElement, "done_reason"),
+                "length",
+                StringComparison.Ordinal);
+
+            // Ollama silently drops the start of a prompt that does not fit num_ctx, and the
+            // only hint is a prompt token count at the limit.
+            var inputCut = usage is not null && usage.PromptTokens >= _contextTokens - 16;
+            if (outputCut || inputCut)
+            {
+                _logger.LogWarning(
+                    "Ollama reply may be incomplete (output cut: {OutputCut}, input cut: {InputCut}, num_ctx {NumCtx}).",
+                    outputCut,
+                    inputCut,
+                    _contextTokens);
+            }
 
             return new SummaryResult(
                 true,
                 content.GetString() ?? string.Empty,
                 Id,
                 ModelName: modelName,
-                Usage: ReadUsage(doc.RootElement),
-                Duration: stopwatch.Elapsed);
+                Usage: usage,
+                Duration: stopwatch.Elapsed)
+            {
+                Truncated = outputCut || inputCut,
+            };
         }
         catch (OperationCanceledException)
         {

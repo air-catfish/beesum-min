@@ -70,6 +70,8 @@ Environment variables on the MCP server entry:
 | `BEESUM_SUB_LANGS` | `en` | Comma-separated subtitle languages, for example `ru,en`. |
 | `BEESUM_PROXY` | unset | Proxy passed to yt-dlp (`--proxy`). |
 | `BEESUM_OLLAMA_URL` / `BEESUM_OLLAMA_MODEL` | `http://localhost:11434` / `llama3.2` | Local Ollama. |
+| `BEESUM_OLLAMA_NUM_CTX` | `8192` | Ollama context window in tokens. Raise it for long chunks. |
+| `BEESUM_MAX_TOKENS` | `1024` | Output token limit for cloud providers. |
 | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` | unset | Enable the matching cloud provider. |
 
 API keys are read from the server environment only; they never appear in tool

@@ -55,6 +55,7 @@ public static class HelpText
           --cookies-from-browser <name>            Cookies from a browser profile
         Environment:
           BEESUM_LANG=en|ru                        UI language (default: system, English fallback)
+          BEESUM_OLLAMA_NUM_CTX=<n>                Ollama context window in tokens (default: 8192)
           API keys are read from environment variables, never from arguments.
           yt-dlp is looked up at ./tools/yt-dlp[.exe] next to the executable;
           override with --yt-dlp.
@@ -122,6 +123,7 @@ public static class HelpText
           --cookies-from-browser <браузер>         Взять cookies из профиля браузера
         Окружение:
           BEESUM_LANG=en|ru                        Язык интерфейса (по умолчанию: системный)
+          BEESUM_OLLAMA_NUM_CTX=<n>                Контекст Ollama в токенах (по умолчанию: 8192)
           API-ключи читаются только из переменных окружения, не из аргументов.
           yt-dlp ищется в ./tools/yt-dlp[.exe] рядом с приложением;
           путь можно переопределить через --yt-dlp.

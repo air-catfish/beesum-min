@@ -167,7 +167,8 @@ public static class ServiceCollectionExtensions
                     sp.GetRequiredService<IHttpClientFactory>(),
                     options.OllamaBaseUrl,
                     options.OllamaModel,
-                    sp.GetService<ILogger<OllamaLlmProvider>>()));
+                    sp.GetService<ILogger<OllamaLlmProvider>>(),
+                    Math.Max(options.OllamaContextTokens, options.ChunkTokens + 2048)));
         }
 
         if (!string.IsNullOrWhiteSpace(options.OpenAiBaseUrl))

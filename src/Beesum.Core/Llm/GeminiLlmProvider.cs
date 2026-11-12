@@ -162,7 +162,10 @@ internal sealed class GeminiLlmProvider : ILlmProvider
                 Id,
                 ModelName: model,
                 Usage: ReadUsage(root),
-                Duration: stopwatch.Elapsed);
+                Duration: stopwatch.Elapsed)
+            {
+                Truncated = IsTruncated(root),
+            };
         }
         catch (OperationCanceledException)
         {
@@ -255,6 +258,15 @@ internal sealed class GeminiLlmProvider : ILlmProvider
 
         return new TokenUsage(promptTokens, completionTokens, total);
     }
+
+    private static bool IsTruncated(JsonElement root) =>
+        root.TryGetProperty("candidates", out var candidates) &&
+        candidates.ValueKind == JsonValueKind.Array &&
+        candidates.GetArrayLength() > 0 &&
+        string.Equals(
+            ProviderSupport.TryGetString(candidates[0], "finishReason"),
+            "MAX_TOKENS",
+            StringComparison.Ordinal);
 
     private static string DescribeEmptyResponse(JsonElement root)
     {

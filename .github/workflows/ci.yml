@@ -80,11 +80,12 @@ jobs:
 
       - name: Tool install smoke
         run: |
+          version="$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)"
           dotnet tool install --tool-path .tool beesum-min \
-            --add-source artifacts/packages --version 0.2.3
+            --add-source artifacts/packages --version "$version"
           .tool/beesum-min --local-vtt samples/demo/smoke.vtt --json
           dotnet tool install --tool-path .tool-mcp beesum-mcp \
-            --add-source artifacts/packages --version 0.2.3
+            --add-source artifacts/packages --version "$version"
           .tool-mcp/beesum-mcp --version
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

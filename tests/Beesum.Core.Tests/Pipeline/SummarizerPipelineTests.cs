@@ -1,3 +1,5 @@
+using Beesum.Core.Abstractions;
+using Beesum.Core.Llm;
 using Beesum.Core.Models;
 using Beesum.Core.Pipeline;
 using Beesum.Testing;
@@ -604,6 +606,73 @@ public class SummarizerPipelineTests
             File.Delete(target);
         }
     }
+    [Fact]
+    public async Task RunAsync_TranscriptOnlyProvider_ReturnsFullTextWithoutChunking()
+    {
+        var transcript = LongTranscript();
+        var pipeline = new SummarizerPipeline(
+            new InMemoryYtDlpService(),
+            Parser(),
+            new ILlmProvider[] { new TranscriptOnlyLlmProvider() },
+            chunkTokens: 20);
+
+        var command = new SummarizeCommand(
+            Url: string.Empty,
+            PromptStyle.Neutral,
+            OutputFormat.PlainText,
+            Transcript: transcript);
+
+        var result = await pipeline.RunAsync(command, cancellationToken: CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(transcript.ToPlainText(), result.Content);
+    }
+
+    [Fact]
+    public async Task RunAsync_TruncatedChunk_MarksFinalResultTruncated()
+    {
+        var pipeline = new SummarizerPipeline(
+            new InMemoryYtDlpService(),
+            Parser(),
+            new ILlmProvider[] { new TruncatingProvider() },
+            providerId: TruncatingProvider.ProviderId,
+            chunkTokens: 20);
+
+        var command = new SummarizeCommand(
+            Url: string.Empty,
+            PromptStyle.Neutral,
+            OutputFormat.PlainText,
+            Transcript: LongTranscript());
+
+        var result = await pipeline.RunAsync(command, cancellationToken: CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Truncated);
+    }
+
+    /// <summary>Reports the first reply as cut off and every later one as complete.</summary>
+    private sealed class TruncatingProvider : ILlmProvider
+    {
+        public const string ProviderId = "truncating";
+
+        private int _calls;
+
+        public string Id => ProviderId;
+
+        public string DisplayName => "Truncating (test)";
+
+        public Task<LlmAvailability> ProbeAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(new LlmAvailability(true));
+
+        public Task<SummaryResult> SummarizeAsync(
+            SummaryRequest request,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new SummaryResult(true, "partial", Id)
+            {
+                Truncated = Interlocked.Increment(ref _calls) == 1,
+            });
+    }
+
     private static Transcript LongTranscript() =>
         new("abc", "en", Enumerable.Range(0, 12)
             .Select(i => new SubtitleSegment(

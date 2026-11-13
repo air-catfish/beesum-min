@@ -12,7 +12,78 @@
         "type": "stdio"
       },
       "packageArguments": [],
-      "environmentVariables": []
+      "environmentVariables": [
+        {
+          "name": "BEESUM_PROVIDER",
+          "description": "LLM provider for the summarize tools: transcript-only (default, only get_transcript is offered), ollama, openai-compatible, anthropic or gemini.",
+          "format": "string",
+          "isRequired": false,
+          "default": "transcript-only"
+        },
+        {
+          "name": "BEESUM_SUB_LANGS",
+          "description": "Comma-separated subtitle languages to download, for example ru,en.",
+          "format": "string",
+          "isRequired": false,
+          "default": "en"
+        },
+        {
+          "name": "BEESUM_PROXY",
+          "description": "Proxy URL passed to yt-dlp, for example socks5://127.0.0.1:1080. May contain credentials.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "BEESUM_OLLAMA_URL",
+          "description": "Base URL of the local Ollama server.",
+          "format": "string",
+          "isRequired": false,
+          "default": "http://localhost:11434"
+        },
+        {
+          "name": "BEESUM_OLLAMA_MODEL",
+          "description": "Ollama model name used when BEESUM_PROVIDER is ollama.",
+          "format": "string",
+          "isRequired": false,
+          "default": "llama3.2"
+        },
+        {
+          "name": "BEESUM_OLLAMA_NUM_CTX",
+          "description": "Ollama context window in tokens. Raise it if long transcripts are cut off.",
+          "format": "number",
+          "isRequired": false,
+          "default": "8192"
+        },
+        {
+          "name": "BEESUM_MAX_TOKENS",
+          "description": "Maximum output tokens for the cloud providers.",
+          "format": "number",
+          "isRequired": false,
+          "default": "1024"
+        },
+        {
+          "name": "OPENAI_API_KEY",
+          "description": "API key that enables the OpenAI-compatible provider.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "description": "API key that enables the Anthropic provider.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "GEMINI_API_KEY",
+          "description": "API key that enables the Gemini provider.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
     }
   ],
   "repository": {

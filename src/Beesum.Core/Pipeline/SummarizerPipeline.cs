@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Beesum.Core.Abstractions;
+using Beesum.Core.Llm;
 using Beesum.Core.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -175,7 +176,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 }
 
                 var download = await _ytDlp
-                    .DownloadSubtitlesAsync(command.Url, workDir, cancellationToken)
+                    .DownloadSubtitlesAsync(command.Url, workDir, command.SubtitleLanguages, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (!download.IsSuccess || string.IsNullOrEmpty(download.FilePath))
@@ -262,7 +263,11 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 "No subtitle text found.");
         }
 
-        var result = _chunkingEnabled && !command.NoChunk && TokenEstimator.Estimate(transcript) > _chunkTokens
+        // transcript-only just hands the text back, so splitting it into chunks and
+        // "combining" the parts would only add calls without changing the result.
+        var result = _chunkingEnabled && !command.NoChunk &&
+                     provider is not TranscriptOnlyLlmProvider &&
+                     TokenEstimator.Estimate(transcript) > _chunkTokens
             ? await SummarizeChunkedAsync(
                 provider,
                 transcript,
@@ -311,6 +316,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
         var partials = new List<string>(chunks.Count);
         var usages = new List<TokenUsage>();
         string? modelName = null;
+        var anyTruncated = false;
 
         for (var index = 0; index < chunks.Count; index++)
         {
@@ -346,6 +352,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
             partials.Add(partial.Content);
             if (partial.Usage is not null) usages.Add(partial.Usage);
             modelName ??= partial.ModelName;
+            anyTruncated |= partial.Truncated;
         }
 
         var final = await ReduceAsync(
@@ -374,6 +381,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
             ModelName = final.ModelName ?? modelName,
             Usage = SumUsage(usages),
             Duration = stopwatch.Elapsed,
+            Truncated = final.Truncated || anyTruncated,
         };
     }
 

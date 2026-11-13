@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Test doubles for this repo's own tests; not published to NuGet. -->
+    <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>Beesum.Testing</PackageId>
     <Title>Beesum.Testing</Title>

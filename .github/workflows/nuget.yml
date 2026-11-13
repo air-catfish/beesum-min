@@ -8,7 +8,6 @@ on:
       tag:
         description: Release tag to publish
         required: true
-        default: v0.2.3
 
 permissions:
   id-token: write

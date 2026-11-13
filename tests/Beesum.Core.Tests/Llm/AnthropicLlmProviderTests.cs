@@ -124,6 +124,23 @@ public class AnthropicLlmProviderTests
         Assert.NotNull(result.ErrorMessage);
     }
 
+    [Theory]
+    [InlineData("max_tokens", true)]
+    [InlineData("end_turn", false)]
+    public async Task SummarizeAsync_StopReason_SetsTruncated(string stopReason, bool expected)
+    {
+        var body =
+            "{\"model\":\"claude-sonnet-4-5\",\"stop_reason\":\"" + stopReason + "\"," +
+            "\"content\":[{\"type\":\"text\",\"text\":\"ok\"}]," +
+            "\"usage\":{\"input_tokens\":1,\"output_tokens\":1}}";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(body);
+
+        var result = await CreateProvider(handler).SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expected, result.Truncated);
+    }
+
     [Fact]
     public async Task SummarizeAsync_CallerCancellation_Throws()
     {

@@ -6,6 +6,10 @@ using Beesum.Core.Models;
 
 try
 {
+    const string TruncationWarning =
+        "Warning: the summary may be incomplete (the model reached its output or context limit). " +
+        "Raise --max-tokens, or set BEESUM_OLLAMA_NUM_CTX for Ollama.";
+
     var options = CliOptionsParser.Parse(args);
 
     if (options.ShowHelp)
@@ -95,6 +99,8 @@ try
             default:
                 beesum.OllamaBaseUrl = options.OllamaBaseUrl;
                 beesum.OllamaModel = options.OllamaModel;
+                if (int.TryParse(Environment.GetEnvironmentVariable("BEESUM_OLLAMA_NUM_CTX"), out var numCtx) && numCtx > 0)
+                    beesum.OllamaContextTokens = numCtx;
                 break;
         }
     });
@@ -124,6 +130,8 @@ try
                 To: options.To);
 
             var batchResult = await pipeline.RunAsync(batchCommand, null, CancellationToken.None);
+            if (batchResult.IsSuccess && batchResult.Truncated)
+                Console.Error.WriteLine(TruncationWarning);
             items.Add(new BatchItem(urls[index], batchResult));
         }
 
@@ -177,6 +185,9 @@ try
     IProgress<PipelineStage>? progress = options.Json ? null : new ConsoleProgress();
 
     var result = await pipeline.RunAsync(command, progress, CancellationToken.None);
+
+    if (result.IsSuccess && result.Truncated)
+        Console.Error.WriteLine(TruncationWarning);
 
     if (result.IsSuccess && !string.IsNullOrWhiteSpace(options.SaveTranscriptPath))
         Console.Error.WriteLine($"Transcript written to {options.SaveTranscriptPath}");

@@ -4,6 +4,53 @@ All notable changes are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `SummaryResult.Truncated`: providers report when a reply hit its output limit
+  (`stop_reason: max_tokens`, `finish_reason: length`, `finishReason: MAX_TOKENS`,
+  `done_reason: length`) or when an Ollama prompt filled the context window. The CLI
+  prints a warning to stderr (JSON output is unchanged) and MCP appends a note to
+  the summary.
+- Ollama requests now set `num_ctx` explicitly: `BeesumOptions.OllamaContextTokens`
+  (default 8192, never below `ChunkTokens` + 2048) and the `BEESUM_OLLAMA_NUM_CTX`
+  environment variable for the CLI and `beesum-mcp`. Without it Ollama could silently
+  cut the start of a long transcript.
+- `beesum-mcp`: `BEESUM_MAX_TOKENS` sets the output token limit.
+- `get_transcript` and `summarize_url` accept `lang` (up to 5 comma-separated codes) to
+  override `BEESUM_SUB_LANGS` per call. Library: `SummarizeCommand.SubtitleLanguages`
+  and `IYtDlpService.DownloadSubtitlesAsync(url, dir, languages, ct)` (a default
+  interface implementation, so existing implementers keep working). Language codes are
+  validated before they reach yt-dlp.
+- When no subtitles exist for the requested language, the error now lists the manual
+  subtitles and original-language automatic captions the video has.
+
+### Fixed
+
+- `beesum-mcp` reads and writes UTF-8 on stdin/stdout explicitly instead of using the
+  console code page, which could garble non-ASCII text on Windows.
+- `Beesum.Testing` is no longer packed or published (test doubles for this repo only).
+- CI tool-install smoke test reads the version from `Directory.Build.props` instead of
+  a hard-coded value; the NuGet publish workflow no longer defaults to an old tag.
+
+### Changed
+
+- MCP: with the default `transcript-only` provider the server lists only
+  `get_transcript`; `summarize_url` and `summarize_transcript` appear only when
+  `BEESUM_PROVIDER` selects a real LLM provider. Server instructions now point
+  to `get_transcript` first.
+- Pipeline: `transcript-only` no longer splits the transcript into chunks and
+  "combines" them back.
+- Provider HTTP clients no longer use the default 100-second `HttpClient`
+  timeout; each provider enforces its own limit. Ollama now allows 10 minutes
+  per request instead of 2.
+- `global.json` opts in to the Microsoft.Testing.Platform runner so that
+  `dotnet test` works on the .NET 10 SDK.
+- `beesum-mcp` package: README rewritten around `get_transcript` and now carries
+  the `mcp-name` marker the MCP Registry checks; `server.json` documents the
+  environment variables; richer description, tags and release-notes link.
+
 ## [0.2.3] - 2026-11-09
 
 ### Added

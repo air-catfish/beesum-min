@@ -199,7 +199,13 @@ internal sealed class OpenAiCompatibleLlmProvider : ILlmProvider
                 Id,
                 ModelName: modelName,
                 Usage: ReadUsage(doc.RootElement),
-                Duration: stopwatch.Elapsed);
+                Duration: stopwatch.Elapsed)
+            {
+                Truncated = string.Equals(
+                    ProviderSupport.TryGetString(first, "finish_reason"),
+                    "length",
+                    StringComparison.Ordinal),
+            };
         }
         catch (OperationCanceledException)
         {

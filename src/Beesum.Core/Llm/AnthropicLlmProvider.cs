@@ -159,7 +159,13 @@ internal sealed class AnthropicLlmProvider : ILlmProvider
                 Id,
                 ModelName: model,
                 Usage: ReadUsage(root),
-                Duration: stopwatch.Elapsed);
+                Duration: stopwatch.Elapsed)
+            {
+                Truncated = string.Equals(
+                    ProviderSupport.TryGetString(root, "stop_reason"),
+                    "max_tokens",
+                    StringComparison.Ordinal),
+            };
         }
         catch (OperationCanceledException)
         {

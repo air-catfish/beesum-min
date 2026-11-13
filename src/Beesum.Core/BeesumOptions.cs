@@ -20,6 +20,12 @@ public sealed class BeesumOptions
     /// <summary>Ollama model name.</summary>
     public string OllamaModel { get; set; } = "llama3.2";
 
+    /// <summary>
+    /// Context window requested from Ollama (<c>num_ctx</c>). The effective value is never
+    /// smaller than <see cref="ChunkTokens"/> plus 2048 so a chunk and its answer fit.
+    /// </summary>
+    public int OllamaContextTokens { get; set; } = 8192;
+
     /// <summary>OpenAI-compatible base URL; <c>null</c> or empty disables the provider.</summary>
     public string? OpenAiBaseUrl { get; set; }
 
@@ -93,6 +99,7 @@ public sealed class BeesumOptions
         ArgumentException.ThrowIfNullOrWhiteSpace(OpenAiModel, nameof(OpenAiModel));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(MaxOutputTokens, nameof(MaxOutputTokens));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(ChunkTokens, nameof(ChunkTokens));
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(OllamaContextTokens, nameof(OllamaContextTokens));
 
         if (YtDlpPath is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(YtDlpPath, nameof(YtDlpPath));
@@ -135,6 +142,7 @@ public sealed class BeesumOptions
         target.YtDlpPath = YtDlpPath;
         target.OllamaBaseUrl = OllamaBaseUrl;
         target.OllamaModel = OllamaModel;
+        target.OllamaContextTokens = OllamaContextTokens;
         target.OpenAiBaseUrl = OpenAiBaseUrl;
         target.OpenAiModel = OpenAiModel;
         target.OpenAiApiKeyProvider = OpenAiApiKeyProvider;

@@ -113,6 +113,62 @@ public class OllamaLlmProviderTests
     }
 
     [Fact]
+    public async Task SummarizeAsync_RequestsDefaultContextWindow()
+    {
+        const string chatResponse = """{"model":"llama3.2","message":{"role":"assistant","content":"ok"},"done":true,"prompt_eval_count":10,"eval_count":2}""";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(chatResponse);
+
+        var result = await CreateProvider(handler).SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.False(result.Truncated);
+        var body = Assert.Single(handler.RequestBodies);
+        Assert.Contains("\"options\":{\"num_ctx\":8192}", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SummarizeAsync_CustomContextWindow_IsSent()
+    {
+        const string chatResponse = """{"model":"llama3.2","message":{"role":"assistant","content":"ok"},"done":true,"prompt_eval_count":10,"eval_count":2}""";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(chatResponse);
+        var provider = new OllamaLlmProvider(
+            new InMemoryHttpClientFactory(handler),
+            BaseUrl,
+            Model,
+            contextTokens: 4096);
+
+        var result = await provider.SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var body = Assert.Single(handler.RequestBodies);
+        Assert.Contains("\"num_ctx\":4096", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SummarizeAsync_DoneReasonLength_MarksTruncated()
+    {
+        const string chatResponse = """{"model":"llama3.2","message":{"role":"assistant","content":"cut off"},"done":true,"done_reason":"length","prompt_eval_count":10,"eval_count":20}""";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(chatResponse);
+
+        var result = await CreateProvider(handler).SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Truncated);
+    }
+
+    [Fact]
+    public async Task SummarizeAsync_PromptFillsContextWindow_MarksTruncated()
+    {
+        const string chatResponse = """{"model":"llama3.2","message":{"role":"assistant","content":"partial"},"done":true,"done_reason":"stop","prompt_eval_count":8192,"eval_count":20}""";
+        var handler = new InMemoryHttpMessageHandler().EnqueueJson(chatResponse);
+
+        var result = await CreateProvider(handler).SummarizeAsync(CreateRequest(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.True(result.Truncated);
+    }
+
+    [Fact]
     public async Task SummarizeAsync_CallerCancellation_Throws()
     {
         using var cts = new CancellationTokenSource();

@@ -173,6 +173,28 @@ public class AddBeesumTests
     }
 
     [Fact]
+    public void AddBeesum_ProviderHttpClients_HaveNoClientSideTimeout()
+    {
+        var services = new ServiceCollection();
+        services.AddBeesum(options =>
+        {
+            options.YtDlpPath = "yt-dlp";
+            options.OllamaBaseUrl = "http://localhost:11434";
+            options.OpenAiBaseUrl = "http://localhost:1234/v1";
+            options.AnthropicBaseUrl = "http://localhost:1235";
+            options.GeminiBaseUrl = "http://localhost:1236";
+        });
+        using var provider = services.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+
+        foreach (var name in new[] { "ollama", "openai", "anthropic", "gemini" })
+        {
+            using var client = factory.CreateClient(name);
+            Assert.Equal(Timeout.InfiniteTimeSpan, client.Timeout);
+        }
+    }
+
+    [Fact]
     public void AddBeesumCore_LegacyOverload_StillRegisters()
     {
         var services = new ServiceCollection();

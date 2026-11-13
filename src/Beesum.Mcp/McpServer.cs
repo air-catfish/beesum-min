@@ -13,6 +13,14 @@ internal sealed class McpServer
     private const string LatestProtocolVersion = "2025-06-18";
     private static readonly string[] SupportedProtocols = { "2024-11-05", "2025-03-26", "2025-06-18" };
 
+    private const string TruncationNote =
+        "\n\n[Warning: the summary may be incomplete; the model reached its output or context limit. " +
+        "Raise BEESUM_MAX_TOKENS (cloud providers) or BEESUM_OLLAMA_NUM_CTX (Ollama).]";
+
+    private const string NoProviderMessage =
+        "No LLM provider is configured on this server (BEESUM_PROVIDER is transcript-only). " +
+        "Use get_transcript and summarize the text yourself, or ask the user to set BEESUM_PROVIDER.";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -21,6 +29,7 @@ internal sealed class McpServer
     private readonly ISummarizerPipelineFactory _pipelines;
     private readonly ISubtitleParser _parser;
     private readonly string _defaultProvider;
+    private readonly bool _summarizeEnabled;
 
     public static string Version { get; } =
         typeof(McpServer).Assembly.GetName().Version is { } version
@@ -39,6 +48,7 @@ internal sealed class McpServer
         _pipelines = pipelines;
         _parser = parser;
         _defaultProvider = defaultProvider;
+        _summarizeEnabled = !string.Equals(defaultProvider, "transcript-only", StringComparison.Ordinal);
     }
 
     public async Task RunAsync(TextReader input, TextWriter output, CancellationToken cancellationToken)
@@ -141,7 +151,7 @@ internal sealed class McpServer
         }
     }
 
-    private static Dictionary<string, object?> InitializeResult(JsonElement? parameters)
+    private Dictionary<string, object?> InitializeResult(JsonElement? parameters)
     {
         var requested = GetString(parameters, "protocolVersion");
         var protocol = requested is not null && SupportedProtocols.Contains(requested, StringComparer.Ordinal)
@@ -160,15 +170,21 @@ internal sealed class McpServer
                 ["name"] = "beesum-min",
                 ["version"] = Version,
             },
-            ["instructions"] =
-                "Summarize YouTube videos or supplied transcripts. Prefer summarize_transcript for text you already have, " +
-                "summarize_url for YouTube links. Use a prompt for a custom style; the built-in styles are shortcuts.",
+            ["instructions"] = ServerInstructions,
         };
     }
 
-    private static Dictionary<string, object?> ToolsList() => new()
+    private string ServerInstructions => _summarizeEnabled
+        ? "Read a YouTube video with get_transcript (paginated with offset and limit) when you will summarize it yourself. " +
+          "Use summarize_url or summarize_transcript only when the server's configured LLM provider should write the summary."
+        : "Read a YouTube video with get_transcript (paginated with offset and limit) and summarize the text yourself. " +
+          "No LLM provider is configured on this server, so there are no summarize tools.";
+
+    private Dictionary<string, object?> ToolsList() => new()
     {
-        ["tools"] = new object[] { SummarizeUrlTool(), SummarizeTranscriptTool(), GetTranscriptTool() },
+        ["tools"] = _summarizeEnabled
+            ? new object[] { SummarizeUrlTool(), SummarizeTranscriptTool(), GetTranscriptTool() }
+            : new object[] { GetTranscriptTool() },
     };
 
     private static Dictionary<string, object?> SummarizeUrlTool() => new()
@@ -186,6 +202,7 @@ internal sealed class McpServer
                     ["type"] = "string",
                     ["description"] = "YouTube video URL.",
                 },
+                ["lang"] = LangSchema(),
                 ["style"] = StyleSchema(),
                 ["format"] = FormatSchema(),
                 ["timestamps"] = TimestampsSchema(),
@@ -275,6 +292,7 @@ internal sealed class McpServer
                     ["type"] = "string",
                     ["description"] = "Optional clip end: ss, mm:ss, or hh:mm:ss.",
                 },
+                ["lang"] = LangSchema(),
                 ["offset"] = new Dictionary<string, object?>
                 {
                     ["type"] = "integer",
@@ -316,6 +334,26 @@ internal sealed class McpServer
         ["type"] = "string",
         ["enum"] = new[] { "markdown", "plaintext", "mindmap" },
         ["default"] = "plaintext",
+    };
+
+    private static IReadOnlyList<string>? GetLanguages(JsonElement? arguments)
+    {
+        var raw = GetString(arguments, "lang");
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+
+        var languages = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (languages.Length is 0 or > 5)
+            throw new ArgumentException("lang must list between 1 and 5 language codes, for example ru,en.");
+
+        return languages;
+    }
+
+    private static Dictionary<string, object?> LangSchema() => new()
+    {
+        ["type"] = "string",
+        ["description"] =
+            "Subtitle language code(s), comma-separated, for example ru or ru,en. " +
+            "Defaults to the server's BEESUM_SUB_LANGS. If subtitles are missing, the error lists the available languages.",
     };
 
     private static Dictionary<string, object?> TimestampsSchema() => new()
@@ -380,6 +418,8 @@ internal sealed class McpServer
         {
             return name switch
             {
+                "summarize_url" or "summarize_transcript" when !_summarizeEnabled =>
+                    new ToolOutcome(NoProviderMessage, IsError: true),
                 "summarize_url" => await SummarizeUrlAsync(arguments, cancellationToken).ConfigureAwait(false),
                 "summarize_transcript" => await SummarizeTranscriptAsync(arguments, cancellationToken).ConfigureAwait(false),
                 "get_transcript" => await GetTranscriptAsync(arguments, cancellationToken).ConfigureAwait(false),
@@ -419,7 +459,8 @@ internal sealed class McpServer
             GetFormat(arguments),
             Instructions: GetString(arguments, "instructions"),
             SystemPrompt: GetString(arguments, "prompt"),
-            Timestamps: GetBool(arguments, "timestamps"));
+            Timestamps: GetBool(arguments, "timestamps"),
+            SubtitleLanguages: GetLanguages(arguments));
 
         return await RunPipelineAsync(GetProvider(arguments), command, cancellationToken).ConfigureAwait(false);
     }
@@ -478,7 +519,8 @@ internal sealed class McpServer
             Timestamps: true,
             From: from,
             To: to,
-            NoChunk: true);
+            NoChunk: true,
+            SubtitleLanguages: GetLanguages(arguments));
 
         var pipeline = _pipelines.Create("transcript-only");
         var result = await pipeline.RunAsync(command, progress: null, cancellationToken).ConfigureAwait(false);
@@ -506,9 +548,14 @@ internal sealed class McpServer
         var pipeline = _pipelines.Create(provider);
         var result = await pipeline.RunAsync(command, progress: null, cancellationToken).ConfigureAwait(false);
 
-        return result.IsSuccess
-            ? new ToolOutcome(result.Content, IsError: false)
-            : new ToolOutcome(result.ErrorMessage ?? "Summary failed.", IsError: true);
+        if (!result.IsSuccess)
+            return new ToolOutcome(result.ErrorMessage ?? "Summary failed.", IsError: true);
+
+        var text = result.Truncated
+            ? result.Content + TruncationNote
+            : result.Content;
+
+        return new ToolOutcome(text, IsError: false);
     }
 
     private PromptStyle GetStyle(JsonElement? arguments) =>

@@ -57,6 +57,10 @@ By default (`BEESUM_PROVIDER` unset or `transcript-only`) the server lists only
 
 - `url` (required): a youtube.com, youtu.be, m.youtube.com or music.youtube.com link.
 - `start`, `end`: optional clip range as `ss`, `mm:ss` or `hh:mm:ss`.
+- `lang`: optional subtitle language code(s), comma-separated, for example `ru` or `ru,en`
+  (up to 5). Defaults to `BEESUM_SUB_LANGS`. If the video has no subtitles in that
+  language, the error lists the manual subtitles and original-language automatic
+  captions it does have.
 - `offset`, `limit`: paging in characters (default limit 12000, maximum 20000). When
   the text is longer, the result ends with the `offset` to request next.
 

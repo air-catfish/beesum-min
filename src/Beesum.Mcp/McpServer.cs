@@ -202,6 +202,7 @@ internal sealed class McpServer
                     ["type"] = "string",
                     ["description"] = "YouTube video URL.",
                 },
+                ["lang"] = LangSchema(),
                 ["style"] = StyleSchema(),
                 ["format"] = FormatSchema(),
                 ["timestamps"] = TimestampsSchema(),
@@ -291,6 +292,7 @@ internal sealed class McpServer
                     ["type"] = "string",
                     ["description"] = "Optional clip end: ss, mm:ss, or hh:mm:ss.",
                 },
+                ["lang"] = LangSchema(),
                 ["offset"] = new Dictionary<string, object?>
                 {
                     ["type"] = "integer",
@@ -332,6 +334,26 @@ internal sealed class McpServer
         ["type"] = "string",
         ["enum"] = new[] { "markdown", "plaintext", "mindmap" },
         ["default"] = "plaintext",
+    };
+
+    private static IReadOnlyList<string>? GetLanguages(JsonElement? arguments)
+    {
+        var raw = GetString(arguments, "lang");
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+
+        var languages = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (languages.Length is 0 or > 5)
+            throw new ArgumentException("lang must list between 1 and 5 language codes, for example ru,en.");
+
+        return languages;
+    }
+
+    private static Dictionary<string, object?> LangSchema() => new()
+    {
+        ["type"] = "string",
+        ["description"] =
+            "Subtitle language code(s), comma-separated, for example ru or ru,en. " +
+            "Defaults to the server's BEESUM_SUB_LANGS. If subtitles are missing, the error lists the available languages.",
     };
 
     private static Dictionary<string, object?> TimestampsSchema() => new()
@@ -437,7 +459,8 @@ internal sealed class McpServer
             GetFormat(arguments),
             Instructions: GetString(arguments, "instructions"),
             SystemPrompt: GetString(arguments, "prompt"),
-            Timestamps: GetBool(arguments, "timestamps"));
+            Timestamps: GetBool(arguments, "timestamps"),
+            SubtitleLanguages: GetLanguages(arguments));
 
         return await RunPipelineAsync(GetProvider(arguments), command, cancellationToken).ConfigureAwait(false);
     }
@@ -496,7 +519,8 @@ internal sealed class McpServer
             Timestamps: true,
             From: from,
             To: to,
-            NoChunk: true);
+            NoChunk: true,
+            SubtitleLanguages: GetLanguages(arguments));
 
         var pipeline = _pipelines.Create("transcript-only");
         var result = await pipeline.RunAsync(command, progress: null, cancellationToken).ConfigureAwait(false);

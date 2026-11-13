@@ -18,6 +18,21 @@ All notable changes are documented here. The format follows
   environment variable for the CLI and `beesum-mcp`. Without it Ollama could silently
   cut the start of a long transcript.
 - `beesum-mcp`: `BEESUM_MAX_TOKENS` sets the output token limit.
+- `get_transcript` and `summarize_url` accept `lang` (up to 5 comma-separated codes) to
+  override `BEESUM_SUB_LANGS` per call. Library: `SummarizeCommand.SubtitleLanguages`
+  and `IYtDlpService.DownloadSubtitlesAsync(url, dir, languages, ct)` (a default
+  interface implementation, so existing implementers keep working). Language codes are
+  validated before they reach yt-dlp.
+- When no subtitles exist for the requested language, the error now lists the manual
+  subtitles and original-language automatic captions the video has.
+
+### Fixed
+
+- `beesum-mcp` reads and writes UTF-8 on stdin/stdout explicitly instead of using the
+  console code page, which could garble non-ASCII text on Windows.
+- `Beesum.Testing` is no longer packed or published (test doubles for this repo only).
+- CI tool-install smoke test reads the version from `Directory.Build.props` instead of
+  a hard-coded value; the NuGet publish workflow no longer defaults to an old tag.
 
 ### Changed
 

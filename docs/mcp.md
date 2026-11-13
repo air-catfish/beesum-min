@@ -44,6 +44,7 @@ Calling them without a provider returns an error that points to `get_transcript`
 | --- | --- | --- |
 | `url` | string, required | YouTube URL (youtube.com, youtu.be, m.youtube.com, music.youtube.com). |
 | `start`, `end` | string | Optional clip range: `ss`, `mm:ss` or `hh:mm:ss`. |
+| `lang` | string | Optional subtitle language code(s), comma-separated (up to 5), e.g. `ru` or `ru,en`. Defaults to `BEESUM_SUB_LANGS`. A missing language returns the languages the video does have. |
 | `offset` | integer | Character offset into the transcript (default 0). |
 | `limit` | integer | Maximum characters to return, 1-20000 (default 12000). |
 

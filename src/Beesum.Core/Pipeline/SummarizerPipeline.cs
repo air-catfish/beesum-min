@@ -176,7 +176,7 @@ internal sealed class SummarizerPipeline : ISummarizerPipeline
                 }
 
                 var download = await _ytDlp
-                    .DownloadSubtitlesAsync(command.Url, workDir, cancellationToken)
+                    .DownloadSubtitlesAsync(command.Url, workDir, command.SubtitleLanguages, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (!download.IsSuccess || string.IsNullOrEmpty(download.FilePath))

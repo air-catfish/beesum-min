@@ -18,12 +18,22 @@ public class McpServerTests
     private static Task<IReadOnlyList<JsonDocument>> RunWithProviderAsync(params string[] requests) =>
         RunCoreAsync(withEchoProvider: true, requests);
 
-    private static async Task<IReadOnlyList<JsonDocument>> RunCoreAsync(bool withEchoProvider, string[] requests)
+    /// <summary>Server with extra service registrations (for example a fake yt-dlp).</summary>
+    private static Task<IReadOnlyList<JsonDocument>> RunWithServicesAsync(
+        Action<IServiceCollection> configure,
+        params string[] requests) =>
+        RunCoreAsync(withEchoProvider: false, requests, configure);
+
+    private static async Task<IReadOnlyList<JsonDocument>> RunCoreAsync(
+        bool withEchoProvider,
+        string[] requests,
+        Action<IServiceCollection>? configure = null)
     {
         var services = new ServiceCollection();
         services.AddBeesum(options => options.OllamaBaseUrl = null);
         if (withEchoProvider)
             services.AddSingleton<ILlmProvider, EchoProvider>();
+        configure?.Invoke(services);
 
         await using var provider = services.BuildServiceProvider();
         var server = new McpServer(
@@ -214,6 +224,76 @@ public class McpServerTests
     }
 
     [Fact]
+    public async Task GetTranscript_LangArgument_ReachesYtDlp()
+    {
+        var fake = new CapturingYtDlp();
+
+        var response = Assert.Single(await RunWithServicesAsync(
+            services => services.AddSingleton<IYtDlpService>(fake),
+            """{"jsonrpc":"2.0","id":13,"method":"tools/call","params":{"name":"get_transcript","arguments":{"url":"https://youtu.be/abc","lang":"ru, en"}}}"""));
+
+        Assert.NotNull(fake.Languages);
+        Assert.Equal(new[] { "ru", "en" }, fake.Languages);
+        var result = response.RootElement.GetProperty("result");
+        Assert.True(result.GetProperty("isError").GetBoolean());
+        Assert.Contains("captured", result.GetProperty("content")[0].GetProperty("text").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetTranscript_WithoutLang_UsesServerDefaults()
+    {
+        var fake = new CapturingYtDlp();
+
+        await RunWithServicesAsync(
+            services => services.AddSingleton<IYtDlpService>(fake),
+            """{"jsonrpc":"2.0","id":14,"method":"tools/call","params":{"name":"get_transcript","arguments":{"url":"https://youtu.be/abc"}}}""");
+
+        Assert.True(fake.Called);
+        Assert.Null(fake.Languages);
+    }
+
+    [Fact]
+    public async Task GetTranscript_TooManyLanguages_ReturnsError()
+    {
+        var response = Assert.Single(await RunAsync(
+            """{"jsonrpc":"2.0","id":15,"method":"tools/call","params":{"name":"get_transcript","arguments":{"url":"https://youtu.be/abc","lang":"a,b,c,d,e,f"}}}"""));
+
+        var result = response.RootElement.GetProperty("result");
+        Assert.True(result.GetProperty("isError").GetBoolean());
+        Assert.Contains("lang must list", result.GetProperty("content")[0].GetProperty("text").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ToolsList_GetTranscript_DeclaresLangProperty()
+    {
+        var response = Assert.Single(await RunAsync("""{"jsonrpc":"2.0","id":1,"method":"tools/list"}"""));
+        var tool = Assert.Single(response.RootElement.GetProperty("result").GetProperty("tools").EnumerateArray());
+
+        Assert.True(tool.GetProperty("inputSchema").GetProperty("properties").TryGetProperty("lang", out _));
+    }
+
+    [Fact]
+    public async Task SummarizeTranscript_Cyrillic_RoundTrips()
+    {
+        var request = JsonSerializer.Serialize(new
+        {
+            jsonrpc = "2.0",
+            id = 16,
+            method = "tools/call",
+            @params = new
+            {
+                name = "summarize_transcript",
+                arguments = new { text = "Привет, мир! Это проверка кириллицы." },
+            },
+        });
+
+        var response = Assert.Single(await RunWithProviderAsync(request));
+        var text = response.RootElement.GetProperty("result").GetProperty("content")[0].GetProperty("text").GetString();
+
+        Assert.Equal("Привет, мир! Это проверка кириллицы.", text);
+    }
+
+    [Fact]
     public async Task UnknownTool_ReturnsToolError()
     {
         var response = Assert.Single(await RunAsync(
@@ -248,6 +328,42 @@ public class McpServerTests
         var response = Assert.Single(await RunAsync("""{"jsonrpc":"2.0","id":6,"method":"ping"}"""));
 
         Assert.Equal(JsonValueKind.Object, response.RootElement.GetProperty("result").ValueKind);
+    }
+
+    /// <summary>yt-dlp stand-in that records the requested languages and always fails.</summary>
+    private sealed class CapturingYtDlp : IYtDlpService
+    {
+        public bool Called { get; private set; }
+
+        public IReadOnlyList<string>? Languages { get; private set; }
+
+        public Task<VideoInfo?> GetInfoAsync(string url, CancellationToken cancellationToken = default) =>
+            Task.FromResult<VideoInfo?>(null);
+
+        public Task<bool> CheckForUpdatesAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task<bool> UpdateAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task<SubtitleDownloadResult> DownloadSubtitlesAsync(
+            string url,
+            string outputDirectory,
+            CancellationToken cancellationToken = default)
+        {
+            Called = true;
+            return Task.FromResult(new SubtitleDownloadResult(false, ErrorMessage: "captured"));
+        }
+
+        public Task<SubtitleDownloadResult> DownloadSubtitlesAsync(
+            string url,
+            string outputDirectory,
+            IReadOnlyList<string>? languages,
+            CancellationToken cancellationToken = default)
+        {
+            Languages = languages;
+            return DownloadSubtitlesAsync(url, outputDirectory, cancellationToken);
+        }
     }
 
     /// <summary>Fake LLM that returns the transcript text, standing in for a configured provider.</summary>

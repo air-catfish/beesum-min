@@ -1,3 +1,4 @@
+using System.Text;
 using Beesum.Core.Abstractions;
 using Beesum.Core.DependencyInjection;
 using Beesum.Mcp;
@@ -19,5 +20,11 @@ var server = new McpServer(
     McpOptions.DefaultProvider);
 
 Console.Error.WriteLine($"beesum-mcp {McpServer.Version} ready on stdio");
-await server.RunAsync(Console.In, Console.Out, CancellationToken.None);
+
+// MCP messages are UTF-8 JSON. Use explicit streams instead of Console.In/Out, whose
+// encoding on Windows follows the console code page (for example 866 on a Russian system).
+var utf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+using var stdin = new StreamReader(Console.OpenStandardInput(), utf8);
+using var stdout = new StreamWriter(Console.OpenStandardOutput(), utf8) { AutoFlush = true, NewLine = "\n" };
+await server.RunAsync(stdin, stdout, CancellationToken.None);
 return 0;

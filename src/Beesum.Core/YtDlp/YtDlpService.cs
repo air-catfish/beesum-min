@@ -209,11 +209,21 @@ internal sealed class YtDlpService : IYtDlpService
     }
 
     /// <inheritdoc />
+    public Task<SubtitleDownloadResult> DownloadSubtitlesAsync(
+        [SuppressMessage("Design", "CA1054:URI parameters should not be strings",
+            Justification = "yt-dlp consumes URLs as plain strings.")]
+        string url,
+        string outputDirectory,
+        CancellationToken cancellationToken = default) =>
+        DownloadSubtitlesAsync(url, outputDirectory, null, cancellationToken);
+
+    /// <inheritdoc />
     public async Task<SubtitleDownloadResult> DownloadSubtitlesAsync(
         [SuppressMessage("Design", "CA1054:URI parameters should not be strings",
             Justification = "yt-dlp consumes URLs as plain strings.")]
         string url,
         string outputDirectory,
+        IReadOnlyList<string>? languages,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(url))
@@ -222,6 +232,21 @@ internal sealed class YtDlpService : IYtDlpService
             return new SubtitleDownloadResult(false, ErrorMessage: "Only http(s) URLs are supported.");
         if (string.IsNullOrWhiteSpace(outputDirectory))
             return new SubtitleDownloadResult(false, ErrorMessage: "Output directory is empty.");
+
+        var selectors = languages is { Count: > 0 } ? languages : _subtitleLanguages;
+        if (languages is { Count: > 0 })
+        {
+            foreach (var selector in languages)
+            {
+                if (!IsValidLanguageSelector(selector))
+                {
+                    return new SubtitleDownloadResult(
+                        false,
+                        ErrorMessage: $"Invalid subtitle language '{selector}'. " +
+                                      "Use codes such as en, ru, en-US, ja-orig or en.*.");
+                }
+            }
+        }
 
         var resolution = await SafeResolveAsync(cancellationToken).ConfigureAwait(false);
         if (resolution is null)
@@ -237,7 +262,7 @@ internal sealed class YtDlpService : IYtDlpService
             "--write-subs",
             "--write-auto-subs",
             "--sub-format", "vtt",
-            "--sub-langs", string.Join(",", _subtitleLanguages),
+            "--sub-langs", string.Join(",", selectors),
             "--skip-download",
             "--no-playlist",
             "-o", "%(id)s.%(ext)s",
@@ -280,15 +305,111 @@ internal sealed class YtDlpService : IYtDlpService
         var vttFiles = Directory
             .EnumerateFiles(outputDirectory, "*.vtt", SearchOption.TopDirectoryOnly)
             .ToList();
-        var vttFile = SelectSubtitleFile(vttFiles, _subtitleLanguages);
+        var vttFile = SelectSubtitleFile(vttFiles, selectors);
         if (vttFile is null)
         {
             _logger.LogWarning("yt-dlp produced no .vtt file.");
-            return new SubtitleDownloadResult(false, ErrorMessage: "No .vtt file was produced.");
+            var hint = await DescribeAvailableLanguagesAsync(resolution.Path, url, selectors, cancellationToken)
+                .ConfigureAwait(false);
+            return new SubtitleDownloadResult(false, ErrorMessage: "No .vtt file was produced." + hint);
         }
 
         _logger.LogDebug("Subtitles downloaded from yt-dlp.");
         return new SubtitleDownloadResult(true, vttFile, ExtractLanguage(vttFile));
+    }
+
+    private static bool IsValidLanguageSelector(string? value)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length > 20 || !char.IsAsciiLetterOrDigit(value[0]))
+            return false;
+
+        foreach (var ch in value)
+        {
+            if (!char.IsAsciiLetterOrDigit(ch) && ch is not ('.' or '_' or '*' or '-'))
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// After an empty download, asks yt-dlp which subtitle languages the video has so the
+    /// caller gets an actionable message. Returns an empty string when that is unknown.
+    /// </summary>
+    private async Task<string> DescribeAvailableLanguagesAsync(
+        string executable,
+        string url,
+        IReadOnlyList<string> requested,
+        CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(InfoTimeout);
+
+        var args = new List<string> { "--dump-json", "--no-playlist", "--skip-download" };
+        args.AddRange(_extraArgs);
+        args.Add("--");
+        args.Add(url);
+
+        try
+        {
+            var result = await _runner.RunAsync(
+                executable,
+                args,
+                cancellationToken: cts.Token).ConfigureAwait(false);
+            if (result.ExitCode != 0 || string.IsNullOrWhiteSpace(result.StandardOutput))
+                return string.Empty;
+
+            var firstLine = result.StandardOutput
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault();
+            if (firstLine is null) return string.Empty;
+
+            using var doc = JsonDocument.Parse(firstLine);
+            var manual = PropertyNames(doc.RootElement, "subtitles")
+                .Where(name => !string.Equals(name, "live_chat", StringComparison.Ordinal))
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToList();
+            var automatic = PropertyNames(doc.RootElement, "automatic_captions")
+                .Where(name => name.EndsWith("-orig", StringComparison.Ordinal))
+                .OrderBy(name => name, StringComparer.Ordinal)
+                .ToList();
+
+            return FormatAvailableLanguages(requested, manual, automatic);
+        }
+        catch (OperationCanceledException)
+        {
+            if (cancellationToken.IsCancellationRequested) throw;
+            return string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static IEnumerable<string> PropertyNames(JsonElement root, string property) =>
+        root.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.Object
+            ? value.EnumerateObject().Select(p => p.Name)
+            : Enumerable.Empty<string>();
+
+    private static string FormatAvailableLanguages(
+        IReadOnlyList<string> requested,
+        IReadOnlyList<string> manual,
+        IReadOnlyList<string> automatic)
+    {
+        const int MaxListed = 20;
+        var asked = string.Join(",", requested);
+
+        if (manual.Count == 0 && automatic.Count == 0)
+            return $" No subtitles for '{asked}'; the video has no subtitles or automatic captions.";
+
+        var parts = new List<string>();
+        if (manual.Count > 0)
+            parts.Add("manual subtitles: " + string.Join(", ", manual.Take(MaxListed)));
+        if (automatic.Count > 0)
+            parts.Add("automatic captions (original language): " + string.Join(", ", automatic.Take(MaxListed)));
+
+        return $" No subtitles for '{asked}'. Available: {string.Join("; ", parts)}. Pass one of these as the language.";
     }
 
     private static bool IsHttpUrl(string value) =>

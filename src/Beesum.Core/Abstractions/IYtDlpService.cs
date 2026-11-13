@@ -28,4 +28,20 @@ public interface IYtDlpService
         string url,
         string outputDirectory,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Downloads subtitles in the given language selectors (for example <c>ru</c> or
+    /// <c>ru,en</c>) instead of the configured defaults. Implementations that do not
+    /// support per-call languages fall back to the three-argument overload.
+    /// </summary>
+    [SuppressMessage(
+        "Design",
+        "CA1054:URI parameters should not be strings",
+        Justification = "yt-dlp consumes URLs as plain strings.")]
+    Task<SubtitleDownloadResult> DownloadSubtitlesAsync(
+        string url,
+        string outputDirectory,
+        IReadOnlyList<string>? languages,
+        CancellationToken cancellationToken = default) =>
+        DownloadSubtitlesAsync(url, outputDirectory, cancellationToken);
 }

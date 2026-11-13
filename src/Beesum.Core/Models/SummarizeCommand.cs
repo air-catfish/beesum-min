@@ -16,6 +16,10 @@ namespace Beesum.Core.Models;
 /// <param name="SaveVttPath">Optional path where the full downloaded/local VTT is copied.</param>
 /// <param name="SaveTranscriptPath">Optional path where the clipped transcript is written.</param>
 /// <param name="NoChunk">Disable map-reduce chunking for this command.</param>
+/// <param name="SubtitleLanguages">
+/// Subtitle language selectors for this command (for example <c>ru</c> or <c>ru,en</c>);
+/// <c>null</c> uses the service's configured languages.
+/// </param>
 public sealed record SummarizeCommand(
     [property: SuppressMessage(
         "Design",
@@ -33,4 +37,5 @@ public sealed record SummarizeCommand(
     TimeSpan? To = null,
     string? SaveVttPath = null,
     string? SaveTranscriptPath = null,
-    bool NoChunk = false);
+    bool NoChunk = false,
+    IReadOnlyList<string>? SubtitleLanguages = null);
